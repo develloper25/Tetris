@@ -1,11 +1,18 @@
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.ArrayList;
+import java.util.logging.Logger;
 
 import javax.swing.JFrame;
 import javax.swing.Timer;
 
 public class TetrisMainWindow extends JFrame {
+	
+	/** A logger for better debugging */
+	private static final Logger log = Logger.getLogger(TetrisMainWindow.class.getName());
 
 	/** The main Panel of our Tetris Game */
 	private static TetrisMainPanel mainMenuePanel;
@@ -13,7 +20,10 @@ public class TetrisMainWindow extends JFrame {
 	/** The main Frame of our Tetris Game */
 	private static TetrisMainWindow mainClass;
 	
+	/** Our Game Field */
+	private TetrisGameField field;
 
+	
 	public static void main(String[] args) {
 		mainMenuePanel = new TetrisMainPanel();
 		mainClass = new TetrisMainWindow();
@@ -48,22 +58,79 @@ public class TetrisMainWindow extends JFrame {
 			}
 		}
 	}
+	
+	private class FieldKeyListener implements KeyListener {
+		
+		@Override
+		public void keyTyped(KeyEvent e) {
+			// TODO Auto-generated method stub
+
+		}
+
+		
+		@Override
+		public void keyPressed(KeyEvent e) {
+			int key = e.getKeyCode();
+
+			if (key == KeyEvent.VK_LEFT) {
+				if (getField().movePossible(1) && !getField().touchesAnotherStone(1)) {
+					getField().moveStoneOneField(1, getField().getStone().getStoneParts());
+				}
+			} else if (key == KeyEvent.VK_RIGHT) {
+				if (getField().movePossible(2) && !getField().touchesAnotherStone(2)) {
+					getField().moveStoneOneField(2, getField().getStone().getStoneParts());
+				}
+			} else if (key == KeyEvent.VK_UP) {
+					if(!getField().touchesAnotherStone(3) && !getField().touchesGroundAfterMoving()) {
+						getField().rotateStone();
+						
+					}
+					ArrayList<Rectangle> stoneParts = field.getStone().getStoneParts();
+					
+					log.info("X1:" + String.valueOf(stoneParts.get(0).getX()));
+					log.info("X2:" + String.valueOf(stoneParts.get(1).getX()));
+					log.info("X3:" + String.valueOf(stoneParts.get(2).getX()));
+					log.info("X4:" + String.valueOf(stoneParts.get(3).getX()));
+
+			} else if (key == KeyEvent.VK_DOWN) {
+				getField().getTimer().setDelay(50);
+				getField().setLayDownKeyPressed(true);
+			}else if(key == KeyEvent.VK_P) {
+				if(!getField().isGamePaused()) {
+					getField().setGamePaused(true); 
+					getField().getTimer().stop();
+				}else {
+					getField().setGamePaused(false);
+					getField().getTimer().restart();
+				}
+			}
+
+		}
+		
+		@Override
+		public void keyReleased(KeyEvent e) {
+			// TODO Auto-generated method stub
+
+		}
+	}
+	
 
 	/**
 	 * inits the single player Game
 	 */
 	private void initSinglePlayerGame() {
 		getMainClass().getContentPane().remove(getMainMenuePanel());
-		TetrisGameField field = new TetrisGameField(10, 20, 15, 500);
-		int idFirstStone = field.getRandomNumberForStone(7);
-		int innerRectangleId = field.getRandomNumberForStone(5);
+		field = new TetrisGameField(10, 20, 15, 500);
+		int idFirstStone = getField().getRandomNumberForStone(7);
+		int innerRectangleId = getField().getRandomNumberForStone(5);
 		TetrisStone stone = new TetrisStone(idFirstStone,innerRectangleId);
-		field.setStone(stone);
-		getMainClass().getContentPane().add(field);
-		field.setFocusable(true);
-		field.requestFocusInWindow();
-		field.addKeyListener(field);
+		getMainClass().setFocusable(true);
+		getMainClass().addKeyListener(new FieldKeyListener());
+		getField().setStone(stone);
+		getMainClass().getContentPane().add(getField());
+		getMainClass().requestFocusInWindow();
 		getMainClass().getContentPane().revalidate();
+		
 		new Thread() {
 			public void run() {
 				mainLoop(field);
@@ -162,5 +229,21 @@ public class TetrisMainWindow extends JFrame {
 	 */
 	public static void setMainClass(TetrisMainWindow mainClass) {
 		TetrisMainWindow.mainClass = mainClass;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public TetrisGameField getField() {
+		return field;
+	}
+
+	/**
+	 * 
+	 * @param field
+	 */
+	public void setField(TetrisGameField field) {
+		this.field = field;
 	}
 }

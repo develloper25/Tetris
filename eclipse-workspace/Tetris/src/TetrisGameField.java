@@ -1,21 +1,14 @@
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.logging.Logger;
-
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
 
-public class TetrisGameField extends JPanel implements KeyListener {
+public class TetrisGameField extends JPanel {
 
-	private static final Logger log = Logger.getLogger(TetrisGameField.class.getName());
 	/** */
 	private int xMax;
 
@@ -67,13 +60,16 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		stonePartsCopy = new ArrayList<Rectangle>();
 	}
 
-	/** */
+	/** inits the Game Field values */
 	private void initGameField() {
 		setGameFieldWidth(xMax * kWidth + 1);
 		setGameFieldHeight(yMax * kWidth + 1);
 	}
 
-	/** */
+	/** 
+	 * the main painting method where all the
+	 * drawing takes place
+	 */
 	public void paintComponent(Graphics g) {
 		Graphics2D g2d = (Graphics2D) g;
 		super.paintComponent(g2d);
@@ -168,17 +164,22 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	}
 	
 	/**
-	 * 
+	 * this method draws the inner Rectangles for the stones
+	 * which are white and black using just simple lines
 	 * @param actRect
 	 * @param g2d
 	 */
 	private void drawInnerRectanglesWhiteAndBlack(Rectangle actRect,Graphics2D g2d) {
+		// get Values of current Rectangle (x and y)
+		int xValRect = (int)actRect.getX();
+		int yValRect = (int)actRect.getY();
+		// draw our rectangles now
 		g2d.setColor(Color.white);
-		g2d.drawLine((int)actRect.getX() + 3, (int)actRect.getY() + 3, (int)actRect.getX() + 10, (int)actRect.getY() + 3);
-		g2d.drawLine((int)actRect.getX() + 3, (int)actRect.getY() + 3, (int)actRect.getX() + 3, (int)actRect.getY() + 10);
+		g2d.drawLine(xValRect + 3, yValRect + 3, xValRect + 10, yValRect + 3);
+		g2d.drawLine(xValRect + 3, yValRect + 3, xValRect + 3, yValRect + 10);
 		g2d.setColor(Color.black);
-		g2d.drawLine((int)actRect.getX() + 3, (int)actRect.getY() + 10, (int)actRect.getX() + 10, (int)actRect.getY() + 10);
-		g2d.drawLine((int)actRect.getX() + 10, (int)actRect.getY() + 4, (int)actRect.getX() + 10, (int)actRect.getY() + 10);
+		g2d.drawLine(xValRect + 3, yValRect + 10, xValRect + 10, yValRect + 10);
+		g2d.drawLine(xValRect + 10, yValRect + 4, xValRect + 10, yValRect + 10);
 	}
 	
 	/**
@@ -212,7 +213,7 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	}
 	
 	/**
-	 * 
+	 * this method draws the rectangles which are just black
 	 * @param actRect
 	 * @param g2d
 	 */
@@ -245,8 +246,13 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	 * @throws CloneNotSupportedException
 	 * 
 	 */
-	public void layDownStone() throws CloneNotSupportedException {
-		TetrisStone stoneFallen = (TetrisStone) getStone().clone();
+	protected void layDownStone() throws CloneNotSupportedException {
+		TetrisStone stoneFallen = null;
+		try {
+			 stoneFallen = (TetrisStone) getStone().clone();
+		}catch(CloneNotSupportedException ex) {
+			throw new CloneNotSupportedException("Can´t create a clone of stone : " + ex);
+		}
 		getStonesFallen().add(stoneFallen);
 	} 
 
@@ -254,6 +260,9 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	 * This method resets the stone parts
 	 */
 	protected void resetStone() {
+		// reset our values for the rotation
+		getStone().setStoneRotated(false);
+		getStone().setStoneRotateDirection(0);
 		// copy the parts into a new list
 		ArrayList<Rectangle> stonePartsFallen = new ArrayList<>(getStone().getStoneParts());
 		getStone().getStoneParts().clear();
@@ -269,7 +278,7 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	 * @param loc the location where the stone should be moved
 	 * @return if the move is possible
 	 */
-	private boolean movePossible(int loc) {
+	protected boolean movePossible(int loc) {
 		boolean moveIsPossible = true;
 		int count = 0;
 		for (int i = 0; i < getStone().getStoneParts().size(); i++) {
@@ -346,7 +355,7 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	 * this method watches if the stone touches the ground after moving
 	 * @return touchesGround
 	 */
-	private boolean touchesGroundAfterMoving() {
+	protected boolean touchesGroundAfterMoving() {
 		boolean touchesGround = false;
 		saveStoneParts();
 		rotateStone();
@@ -466,14 +475,13 @@ public class TetrisGameField extends JPanel implements KeyListener {
 			setStoneValuesRotate(1, 2, true,false);
 		} else if (stoneRotateDirection == 1) {
 			// change 0 to value of 3
-			setStoneValuesRotate(0, 3,false,false);
+			setStoneValuesRotate(3, 0,false,false);
 			// change 3 to value of 2
-			setStoneValuesRotate(3, 2,false,false);
+			setStoneValuesRotate(2, 3,false,false);
 			// change 2 to value of 1 ( y - 15)
-			setStoneValuesRotate(2, 1,false,true);
-			
+			setStoneValuesRotate(1, 2,false,true);
 		} else if (stoneRotateDirection == 2) {
-			
+			System.out.println();
 		} else if (stoneRotateDirection == 3) {
 			
 		}else if (stoneRotateDirection == 4) {
@@ -482,7 +490,13 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		getStone().setStoneRotateDirection(stoneRotateDirection + 1);
 	}
 	
-	
+	/**
+	 * 
+	 * @param stoneValToGet
+	 * @param stoneValToChange
+	 * @param xMinus
+	 * @param yMinus
+	 */
 	private void setStoneValuesRotate(int stoneValToGet, int stoneValToChange,boolean xMinus,boolean yMinus) {
 		int xVal = 0;
 		int yVal = 0;
@@ -602,49 +616,7 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	}
 	
 
-	@Override
-	public void keyTyped(KeyEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
 	
-	@Override
-	public void keyPressed(KeyEvent e) {
-		int key = e.getKeyCode();
-
-		if (key == KeyEvent.VK_LEFT) {
-			if (movePossible(1) && !touchesAnotherStone(1)) {
-				moveStoneOneField(1, getStone().getStoneParts());
-			}
-		} else if (key == KeyEvent.VK_RIGHT) {
-			if (movePossible(2) && !touchesAnotherStone(2)) {
-				moveStoneOneField(2, getStone().getStoneParts());
-			}
-		} else if (key == KeyEvent.VK_UP) {
-				if(!touchesAnotherStone(3) && !touchesGroundAfterMoving()) {
-					rotateStone();
-					
-				}
-				log.info("X1:" + String.valueOf(getStone().getStoneParts().get(0).getX()));
-				log.info("X2:" + String.valueOf(getStone().getStoneParts().get(1).getX()));
-				log.info("X3:" + String.valueOf(getStone().getStoneParts().get(2).getX()));
-				log.info("X4:" + String.valueOf(getStone().getStoneParts().get(3).getX()));
-
-		} else if (key == KeyEvent.VK_DOWN) {
-			getTimer().setDelay(50);
-			setLayDownKeyPressed(true);
-		}else if(key == KeyEvent.VK_P) {
-			if(!isGamePaused()) {
-				setGamePaused(true); 
-				getTimer().stop();
-			}else {
-				setGamePaused(false);
-				getTimer().restart();
-			}
-		}
-
-	}
 
 	/**
 	 * this method lays the current stone down and creates a new one
@@ -676,11 +648,7 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		return randNumber;
 	}
 
-	@Override
-	public void keyReleased(KeyEvent e) {
-		// TODO Auto-generated method stub
-
-	}
+	
 
 	/** returns the xMax value */
 	public int getxMax() {
