@@ -133,7 +133,7 @@ public class TetrisMainWindow extends JFrame {
 		
 		new Thread() {
 			public void run() {
-				mainLoop(field);
+				mainLoop();
 			}
 		}.start();
 	}
@@ -143,7 +143,7 @@ public class TetrisMainWindow extends JFrame {
 	 * 
 	 * 
 	 */
-	public void mainLoop(TetrisGameField field) {
+	public void mainLoop() {
 
 		boolean gameIsRunning = true;
 
@@ -151,13 +151,13 @@ public class TetrisMainWindow extends JFrame {
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					doEveryTick(field);
+					doEveryTick(getField());
 				}
 				 
 			 };
 		
-		Timer timer = new Timer(field.getSpeed(), actListner);
-		field.setTimer(timer);
+		Timer timer = new Timer(getField().getSpeed(), actListner);
+		getField().setTimer(timer);
 		timer.start();
 		
 		while (gameIsRunning) {

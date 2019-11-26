@@ -390,8 +390,8 @@ public class TetrisGameField extends JPanel {
 	 */
 	protected void rotateStone() {
 		
-		int width = 14;
-		int height = 14;
+		int width = getStone().getStoneWidth();
+		int height = getStone().getStoneHeight();
 		
 		if(getStone().getId() == 1) {
 			rotateIstone(width, height);
@@ -461,66 +461,67 @@ public class TetrisGameField extends JPanel {
 	
 		moveTstoneFromBorder();
 		int stoneRotateDirection = getStone().getStoneRotateDirection();
-		if (stoneRotateDirection == 6) {
-			getStone().setStoneRotateDirection(0);
-			stoneRotateDirection = 0;
-		}
-
+		
+		int xVal = 0;
+		int yVal= 0;
+		
+		ArrayList<Rectangle> stoneParts = getStone().getStoneParts();
+	
 		if (stoneRotateDirection == 0) {
-			// change 0 to value of 3
-			setStoneValuesRotate(3, 0,false,false);
-			// change 3 to value of 2
-			setStoneValuesRotate(2, 3,false,false);
-			// change 2 to value of 1 (x- 15)
-			setStoneValuesRotate(1, 2, true,false);
+			rotateStonePart(width, height, 0, 3);
+			rotateStonePart(width, height, 3, 0);
+			rotateStonePart(width, height, 2, 1);
 		} else if (stoneRotateDirection == 1) {
-			// change 0 to value of 3
-			setStoneValuesRotate(3, 0,false,false);
-			// change 3 to value of 2
-			setStoneValuesRotate(2, 3,false,false);
-			// change 2 to value of 1 ( y - 15)
-			setStoneValuesRotate(1, 2,false,true);
+			 xVal = (int)stoneParts.get(1).getX();
+			 yVal = (int)stoneParts.get(1).getY() -15;
+			 getStone().getStoneParts().get(3).setRect(xVal, yVal, width, height);
 		} else if (stoneRotateDirection == 2) {
-			System.out.println();
+			xVal = (int)stoneParts.get(1).getX() +15;
+			yVal = (int)stoneParts.get(1).getY();
+			getStone().getStoneParts().get(2).setRect(xVal, yVal, width, height);
 		} else if (stoneRotateDirection == 3) {
-			
-		}else if (stoneRotateDirection == 4) {
-			
+			xVal = (int)stoneParts.get(1).getX();
+			yVal = (int)stoneParts.get(1).getY() +15;
+			getStone().getStoneParts().get(0).setRect(xVal, yVal, width, height);
 		}
-		getStone().setStoneRotateDirection(stoneRotateDirection + 1);
+		if(getStone().getStoneRotateDirection() == 4) {
+			getStone().setStoneRotateDirection(0);
+		}else {
+			getStone().setStoneRotateDirection(stoneRotateDirection + 1);
+		}
+	
 	}
 	
 	/**
-	 * 
-	 * @param stoneValToGet
-	 * @param stoneValToChange
-	 * @param xMinus
-	 * @param yMinus
+	 * this method rotates a Stone Part to the direction
+	 * and sets it´s original part
+	 * @param width
+	 * @param height
+	 * @param stonePartToRotate
+	 * @param direction 0 stands for middle down, 1 stands for left, 2 stands for middle up
+	 * 3 stands for right down 
 	 */
-	private void setStoneValuesRotate(int stoneValToGet, int stoneValToChange,boolean xMinus,boolean yMinus) {
+	private void rotateStonePart( int width, int height,int stonePartToRotate,int direction) {
+		ArrayList<Rectangle> stoneParts = getStone().getStoneParts();
 		int xVal = 0;
 		int yVal = 0;
-		int width = getStone().getStoneWidth();
-		int height = getStone().getStoneHeight();
-
-		if(xMinus) {
-			xVal = (int) getStone().getStoneParts().get(stoneValToGet).getX() -15; 
-		}else {
-			xVal = (int) getStone().getStoneParts().get(stoneValToGet).getX(); 
+		if(direction == 0) {
+			 xVal = (int)stoneParts.get(1).getX();
+			 yVal = (int)stoneParts.get(1).getY() +15;
+		}else if(direction == 1) {
+			xVal = (int)stoneParts.get(1).getX() -15;
+			yVal = (int)stoneParts.get(1).getY();
+		}else if(direction == 2) {
+			xVal = (int)stoneParts.get(1).getX();
+			yVal = (int)stoneParts.get(1).getY() -15;
+		}else if(direction == 3) {
+			xVal = (int)stoneParts.get(1).getX() +15;
+			yVal = (int)stoneParts.get(1).getY();
 		}
-	
-		if(yMinus) {
-			yVal = (int) getStone().getStoneParts().get(stoneValToGet).getY() -15;
-		}else{
-			yVal = (int) getStone().getStoneParts().get(stoneValToGet).getY() ;
-		}
-		
-		
-		getStone().getStoneParts().get(stoneValToChange).setRect(xVal, yVal, width, height);
+		getStone().getStoneParts().get(stonePartToRotate).setRect(xVal, yVal, width, height);
 	}
 	
-	
-	
+
 	/**
 	 * 
 	 */

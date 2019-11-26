@@ -48,13 +48,16 @@ public class TetrisStone implements Cloneable {
 		this.id = id;
 		this.innerRectangleId = innerRectangleId;
 		createStone();
-		setStoneRotateDirection(0);
 	}
 
 	/**
 	 * this method creates new stones out of the id
 	 */
 	private void createStone() {
+		setStoneRotateDirection(0);
+		setStoneHeight(14);
+		setStoneWidth(14);
+		
 		if (getId() == 1) {
 			createIstone();
 		} else if (getId() == 2) {
@@ -80,8 +83,6 @@ public class TetrisStone implements Cloneable {
 	public void createStone(int id, int innerRectangleId) {
 		setId(id);
 		setInnerRectangleId(innerRectangleId);
-		setStoneHeight(14);
-		setStoneWidth(14);
 		createStone();
 	}
 
