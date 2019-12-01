@@ -2,32 +2,39 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.ArrayList;
+import java.util.logging.Logger;
+
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
 
-public class TetrisGameField extends JPanel {
+public class TetrisGameField extends JPanel implements KeyListener {
 
-	/** */
+	/** A logger for better debugging */
+	private static final Logger log = Logger.getLogger(TetrisGameField.class.getName());
+	
+	/** xMax value */
 	private int xMax;
 
-	/** */
+	/** yMax value*/
 	private int yMax;
 
-	/** */
+	/** the width of a stone part rectangle */
 	private int kWidth;
 
-	/** */
+	/** speed of the stones */
 	private int speed;
 
-	/** */
+	/** the width of our field*/
 	private int gameFieldWidth;
 
-	/** */
+	/** the height of our field */
 	private int gameFieldHeight;
 
-	/** */
+	/** our current stone */
 	private TetrisStone stone;
 
 	/** the stones which already felt down */
@@ -36,18 +43,24 @@ public class TetrisGameField extends JPanel {
 	/** a copy of the stone parts */
 	private ArrayList<Rectangle> stonePartsCopy;
 
-	/** */
+	/** our timer */
 	private Timer timer;
 	
-	/** */
+	/** defines if the game is paused */
 	private boolean gamePaused = false;
 	
-	/** */
+	/** the lay down key pressed value */
 	private boolean layDownKeyPressed = false;
 	
-	
+	/** the lay down timer value */
+	private boolean layDownTimer = false;
+
 	/**
-	 * 
+	 * constructor for a new Game Field
+	 * @param xMax
+	 * @param yMax
+	 * @param kWidth
+	 * @param speed
 	 */
 	public TetrisGameField(int xMax, int yMax, int kWidth, int speed) {
 		this.xMax = xMax;
@@ -66,9 +79,8 @@ public class TetrisGameField extends JPanel {
 		setGameFieldHeight(yMax * kWidth + 1);
 	}
 
-	/** 
-	 * the main painting method where all the
-	 * drawing takes place
+	/**
+	 * the main painting method where all the drawing takes place
 	 */
 	public void paintComponent(Graphics g) {
 		Graphics2D g2d = (Graphics2D) g;
@@ -459,31 +471,29 @@ public class TetrisGameField extends JPanel {
 	 */
 	private void rotateTstone(int width, int height) {
 	
-		moveTstoneFromBorder();
 		int stoneRotateDirection = getStone().getStoneRotateDirection();
-		
-		int xVal = 0;
-		int yVal= 0;
-		
-		ArrayList<Rectangle> stoneParts = getStone().getStoneParts();
 	
 		if (stoneRotateDirection == 0) {
 			rotateStonePart(width, height, 0, 3);
 			rotateStonePart(width, height, 3, 0);
 			rotateStonePart(width, height, 2, 1);
 		} else if (stoneRotateDirection == 1) {
-			 xVal = (int)stoneParts.get(1).getX();
-			 yVal = (int)stoneParts.get(1).getY() -15;
-			 getStone().getStoneParts().get(3).setRect(xVal, yVal, width, height);
+			rotateStonePart(width, height, 2, 2);
+			rotateStonePart(width, height, 3, 1);
+			rotateStonePart(width, height, 0, 0);
 		} else if (stoneRotateDirection == 2) {
-			xVal = (int)stoneParts.get(1).getX() +15;
-			yVal = (int)stoneParts.get(1).getY();
-			getStone().getStoneParts().get(2).setRect(xVal, yVal, width, height);
+			rotateStonePart(width, height, 2, 3);
+			rotateStonePart(width, height, 3, 2);
+			rotateStonePart(width, height, 0, 1);
 		} else if (stoneRotateDirection == 3) {
-			xVal = (int)stoneParts.get(1).getX();
-			yVal = (int)stoneParts.get(1).getY() +15;
-			getStone().getStoneParts().get(0).setRect(xVal, yVal, width, height);
+			rotateStonePart(width, height, 2, 0);
+			rotateStonePart(width, height, 3, 3);
+			rotateStonePart(width, height, 0, 2);
 		}
+		
+		// move the stone from the border
+		moveTstoneFromBorder();
+		// finally set the direction, if it is 4 reset it to 0
 		if(getStone().getStoneRotateDirection() == 4) {
 			getStone().setStoneRotateDirection(0);
 		}else {
@@ -523,7 +533,7 @@ public class TetrisGameField extends JPanel {
 	
 
 	/**
-	 * 
+	 * this method moves the T stone from the border
 	 */
 	private void moveTstoneFromBorder() {
 		ArrayList<Rectangle> stoneParts = getStone().getStoneParts();
@@ -531,10 +541,10 @@ public class TetrisGameField extends JPanel {
 		boolean hasToMoveFromBorder = false;
 		
 		while(i < stoneParts.size() && !hasToMoveFromBorder) {
-			if(stoneParts.get(i).getX() <= 41) {
+			if(stoneParts.get(i).getX() < 41) {
 				moveStoneOneField(2, stoneParts);
 				hasToMoveFromBorder = true;
-			}else if(stoneParts.get(i).getX() >= 176) {
+			}else if(stoneParts.get(i).getX() > 176) {
 				moveStoneOneField(1, stoneParts);
 				hasToMoveFromBorder = true;
 			}
@@ -581,7 +591,8 @@ public class TetrisGameField extends JPanel {
 	}
 	
 	/**
-	 * 
+	 * this method moves the I Stone from the border 
+	 * while rotating
 	 */
 	private void moveIStoneFromBorder() {
 		ArrayList<Rectangle> stoneParts = getStone().getStoneParts();
@@ -617,8 +628,6 @@ public class TetrisGameField extends JPanel {
 	}
 	
 
-	
-
 	/**
 	 * this method lays the current stone down and creates a new one
 	 * 
@@ -649,6 +658,60 @@ public class TetrisGameField extends JPanel {
 		return randNumber;
 	}
 
+	
+
+		
+	@Override
+	public void keyTyped(KeyEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		int key = e.getKeyCode();
+
+		if (key == KeyEvent.VK_LEFT) {
+			if (movePossible(1) && !touchesAnotherStone(1)) {
+				moveStoneOneField(1, getStone().getStoneParts());
+			}
+		} else if (key == KeyEvent.VK_RIGHT) {
+			if (movePossible(2) && !touchesAnotherStone(2)) {
+				moveStoneOneField(2, getStone().getStoneParts());
+			}
+		} else if (key == KeyEvent.VK_UP) {
+			if (!touchesAnotherStone(3) && !touchesGroundAfterMoving()) {
+				rotateStone();
+
+			}
+			ArrayList<Rectangle> stoneParts = getStone().getStoneParts();
+
+//					log.info("X1:" + String.valueOf(stoneParts.get(0).getX()));
+//					log.info("X2:" + String.valueOf(stoneParts.get(1).getX()));
+//					log.info("X3:" + String.valueOf(stoneParts.get(2).getX()));
+//					log.info("X4:" + String.valueOf(stoneParts.get(3).getX()));
+
+		} else if (key == KeyEvent.VK_DOWN) {
+			setLayDownKeyPressed(true);
+			setLayDownTimer(true);
+		} else if (key == KeyEvent.VK_P) {
+			if (!isGamePaused()) {
+				setGamePaused(true);
+				getTimer().stop();
+			} else {
+				setGamePaused(false);
+				getTimer().restart();
+			}
+		}
+
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+	
 	
 
 	/** returns the xMax value */
@@ -824,6 +887,22 @@ public class TetrisGameField extends JPanel {
 	 */
 	public void setLayDownKeyPressed(boolean layDownKeyPressed) {
 		this.layDownKeyPressed = layDownKeyPressed;
+	}
+
+	/** 
+	 * 
+	 * @return
+	 */
+	public boolean isLayDownTimer() {
+		return layDownTimer;
+	}
+
+	/**
+	 * 
+	 * @param layDownTimer
+	 */
+	public void setLayDownTimer(boolean layDownTimer) {
+		this.layDownTimer = layDownTimer;
 	}
 
 }
