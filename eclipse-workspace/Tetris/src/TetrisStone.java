@@ -150,9 +150,9 @@ public class TetrisStone implements Cloneable {
 		setColor(Color.blue);
 		setxStartCoord(101);
 		setyStartCoord(11);
+		addParts(getxStartCoord(), getyStartCoord(), 3);
 		Rectangle rectangleRight = new Rectangle(getxStartCoord() + 15, getyStartCoord(), 14, 14);
 		getStoneParts().add(rectangleRight);
-		addParts(getxStartCoord(), getyStartCoord(), 3);
 	}
 
 	/**
@@ -163,9 +163,9 @@ public class TetrisStone implements Cloneable {
 		setColor(orange);
 		setxStartCoord(116);
 		setyStartCoord(11);
+		addParts(getxStartCoord(), getyStartCoord(), 3);
 		Rectangle rectangeLeft = new Rectangle(getxStartCoord() - 15, getyStartCoord(), 14, 14);
 		getStoneParts().add(rectangeLeft);
-		addParts(getxStartCoord(), getyStartCoord(), 3);
 	}
 
 	/**

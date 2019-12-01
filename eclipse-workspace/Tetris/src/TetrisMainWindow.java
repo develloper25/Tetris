@@ -35,6 +35,7 @@ public class TetrisMainWindow extends JFrame {
 		setLocationRelativeTo(null);
 		ButtonListener listener = new ButtonListener();
 		initButtonListener(listener);
+		setResizable(false);
 	}
 
 	/**
@@ -103,7 +104,7 @@ public class TetrisMainWindow extends JFrame {
 		
 		while (gameIsRunning) {
 			try {
-				if(field.isLayDownTimer()) {
+				if(field.isTimerLayDown()) {
 					Timer layDownTimer = new Timer(50,actListner);
 					initLayDownTimer(field, layDownTimer);
 				}
@@ -127,7 +128,7 @@ public class TetrisMainWindow extends JFrame {
 	private void initLayDownTimer(TetrisGameField field, Timer layDownTimer) {
 		field.getTimer().stop();
 		field.setTimer(layDownTimer);
-		field.setLayDownTimer(false);
+		field.setTimerLayDown(false);
 		layDownTimer.start();
 	}
 	
