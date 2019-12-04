@@ -419,6 +419,8 @@ public class TetrisGameField extends JPanel implements KeyListener {
 			rotateZstone(width, height);
 		} else if(getStone().getId() == 6) {
 			rotateJstone(width, height);
+		}else if(getStone().getId() == 7) {
+			rotateLstone(width, height);
 		}
 		
 		if(!getStone().isStoneRotated()) {
@@ -582,7 +584,7 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	}
 	
 	/**
-	 * 
+	 * this method rotates the J stone (id = 6)
 	 * @param stonePartWidth
 	 * @param stonePartHeight
 	 */
@@ -616,6 +618,45 @@ public class TetrisGameField extends JPanel implements KeyListener {
 			yVal = (int)stoneParts.get(3).getY() ;
 		}
 
+		getStone().getStoneParts().get(3).setRect(xVal, yVal, stonePartWidth, stonePartHeight);
+		
+	}
+	
+	
+	/**
+	 * this method rotates the L stone (id = 7)
+	 * @param stonePartWidth
+	 * @param stonePartHeight
+	 */
+	private void rotateLstone(int stonePartWidth, int stonePartHeight) {
+		int xVal = 0;
+		int yVal = 0;
+		
+		ArrayList<Rectangle> stoneParts = getStone().getStoneParts();
+		
+		int stoneRotateDirection = getStone().getStoneRotateDirection();
+		
+		if(stoneRotateDirection == 0) {
+			xVal = (int)stoneParts.get(3).getX() + getKwidthAndHeight() * 2;
+			yVal = (int)stoneParts.get(3).getY();
+			rotateStonePart(stonePartWidth, stonePartHeight, 0, 3);
+			rotateStonePart(stonePartWidth, stonePartHeight, 2, 1);
+		}else if(stoneRotateDirection == 1) {
+			xVal = (int)stoneParts.get(3).getX();
+			yVal = (int)stoneParts.get(3).getY() + getKwidthAndHeight() * 2;
+			rotateStonePart(stonePartWidth, stonePartHeight, 2, 2);
+			rotateStonePart(stonePartWidth, stonePartHeight, 0, 0);
+		}else if(stoneRotateDirection == 2) {
+			xVal = (int)stoneParts.get(3).getX() - getKwidthAndHeight() * 2;
+			yVal = (int)stoneParts.get(3).getY() ;
+			rotateStonePart(stonePartWidth, stonePartHeight, 2, 3);
+			rotateStonePart(stonePartWidth, stonePartHeight, 0, 1);
+		}else if(stoneRotateDirection == 3) {
+			xVal = (int)stoneParts.get(3).getX();
+			yVal = (int)stoneParts.get(3).getY() - getKwidthAndHeight() * 2;
+			rotateStonePart(stonePartWidth, stonePartHeight, 2, 0);
+			rotateStonePart(stonePartWidth, stonePartHeight, 0, 2);
+		}
 		getStone().getStoneParts().get(3).setRect(xVal, yVal, stonePartWidth, stonePartHeight);
 		
 	}
