@@ -6,7 +6,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.logging.Logger;
-
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
@@ -34,27 +33,34 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	/** the height of our field */
 	private int gameFieldHeight;
 
+	/** the upper edge x start coordinates */
+	private int upperEdgeXcoord;
+	
+	/** the upper edge y start coordinates */
+	private int upperEdgeYcoord;
+	
 	/** our current stone */
 	private TetrisStone stone;
 
 	/** the stones which already felt down */
-	private ArrayList<TetrisStone> stonesFallen;
+	private ArrayList<TetrisStone> stonesFallen = new ArrayList<TetrisStone>();
 	
 	/** a copy of the stone parts */
-	private ArrayList<Rectangle> stonePartsCopy;
+	private ArrayList<Rectangle> stonePartsCopy = new ArrayList<Rectangle>();
 
 	/** our timer */
 	private Timer timer;
 	
 	/** defines if the game is paused */
-	private boolean gamePaused = false;
+	private boolean gamePaused;
 	
 	/** the lay down key pressed value */
-	private boolean layDownKeyPressed = false;
+	private boolean layDownKeyPressed ;
 	
 	/** the lay down timer value */
-	private boolean timerLayDown = false;
+	private boolean timerLayDown;
 
+	
 	/**
 	 * constructor for a new Game Field
 	 * @param xMax
@@ -67,16 +73,19 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		this.yMax = yMax;
 		this.kWidthAndHeight = kWidth;
 		this.speed = speed;
-		initGameField();
 		this.setLayout(null);
-		stonesFallen = new ArrayList<TetrisStone>();
-		stonePartsCopy = new ArrayList<Rectangle>();
+		initGameField();
 	}
 
 	/** inits the Game Field values */
 	private void initGameField() {
-		setGameFieldWidth(xMax * kWidthAndHeight + 1);
-		setGameFieldHeight(yMax * kWidthAndHeight + 1);
+		setGameFieldWidth(xMax * getKwidthAndHeight() );
+		setGameFieldHeight(yMax * getKwidthAndHeight() );
+		setUpperEdgeXcoord(60);
+		setUpperEdgeYcoord(70);
+		setTimerLayDown(false);
+		setLayDownKeyPressed(false);
+		setGamePaused(false);
 	}
 
 	/**
@@ -87,16 +96,16 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		super.paintComponent(g2d);
 		g2d.setColor(Color.GRAY);
 		// Spielfeld Rand zeichnen links
-		g2d.fillRect(20, 40, 20, gameFieldHeight);
+		g2d.fillRect(40, getUpperEdgeYcoord(), 20, gameFieldHeight);
 		// Spielfeld Rand zeichnen rechts
-		g2d.fillRect(gameFieldWidth + 40, 40, 20, gameFieldHeight);
+		g2d.fillRect(gameFieldWidth + getUpperEdgeXcoord(), getUpperEdgeYcoord(), 20, gameFieldHeight);
 		// Spielfeld Rand zeichnen unten
 		Color brown = new Color(205, 133, 63);
 		g2d.setColor(brown);
-		g2d.fillRect(20, gameFieldHeight + 40, gameFieldWidth + 40, 2);
+		g2d.fillRect(40, gameFieldHeight + getUpperEdgeYcoord(), gameFieldWidth + getUpperEdgeXcoord() - 20, 2);
 		g2d.setColor(Color.white);
 		// Spielfeld füllen
-		g2d.fillRect(40, 40, gameFieldWidth - 1, gameFieldHeight - 1);
+		g2d.fillRect(getUpperEdgeXcoord(), getUpperEdgeYcoord(), gameFieldWidth - 1, gameFieldHeight - 1);
 		// Stein zeichnen
 		paintStone(g2d);
 		// paint stones which already felt down
@@ -246,7 +255,7 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		boolean touches = false;
 		for (int i = 0; i < getStone().getStoneParts().size(); i++) {
 			Rectangle currentRect = getStone().getStoneParts().get(i);
-			if (currentRect.getY() >= getGameFieldHeight() + 25) {
+			if (currentRect.getY() >= getGameFieldHeight() + 56) {
 				touches = true;
 				break;
 			}
@@ -295,9 +304,9 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		int count = 0;
 		for (int i = 0; i < getStone().getStoneParts().size(); i++) {
 			Rectangle currentRect = getStone().getStoneParts().get(i);
-			if (loc == 1 && currentRect.getX() < 56) {
+			if (loc == 1 && currentRect.getX() <= 61) {
 				count++;
-			} else if (loc == 2 && currentRect.getX() > 161) {
+			} else if (loc == 2 && currentRect.getX() > 189) {
 				count++;
 			}
 		}
@@ -446,51 +455,37 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	}
 	
 	/**
-	 * 
+	 * this method rotates the I Stone (id = 1)
 	 * @param xVal
 	 * @param yVal
 	 */
 	private void rotateIstone(int stonePartWidth, int stonePartHeight) {
-		
 		int xVal = 0;
-		int yVal= 0;
+		int yVal = 0;
+		
+		ArrayList<Rectangle> stoneParts = getStone().getStoneParts();
+		
+
+		if (!getStone().isStoneRotated()) {
+			rotateStonePart(stonePartWidth, stonePartHeight, 3, 1, 2);
+			rotateStonePart(stonePartWidth, stonePartHeight, 1, 3, 2);
+			xVal = (int) stoneParts.get(2).getX() + getKwidthAndHeight() * 2;
+			yVal = (int) stoneParts.get(2).getY();
+		} else if (getStone().isStoneRotated()) {
+			rotateStonePart(stonePartWidth, stonePartHeight, 3, 0, 2);
+			rotateStonePart(stonePartWidth, stonePartHeight, 1, 2, 2);
+			xVal = (int) stoneParts.get(2).getX();
+			yVal = (int) stoneParts.get(2).getY() - getKwidthAndHeight() * 2;
+		}
+		getStone().getStoneParts().get(0).setRect(xVal, yVal, stonePartWidth, stonePartHeight);
 		
 		moveIStoneFromBorder();
-		
-		for (int i = 0; i < getStone().getStoneParts().size(); i++) {
-			if (i == 0) {
-				if (!getStone().isStoneRotated()) {
-					xVal = (int) getStone().getStoneParts().get(i).getX() + getKwidthAndHeight() * 2;
-					yVal = (int) getStone().getStoneParts().get(i).getY() + getKwidthAndHeight() * 2;
-				} else {
-					xVal = (int) getStone().getStoneParts().get(i).getX() - getKwidthAndHeight() * 2;
-					yVal = (int) getStone().getStoneParts().get(i).getY() - getKwidthAndHeight() * 2;
-				}
-			} else if (i == 1) {
-				if (!getStone().isStoneRotated()) {
-					xVal = (int) getStone().getStoneParts().get(i).getX() + getKwidthAndHeight();
-					yVal = (int) getStone().getStoneParts().get(i).getY() + getKwidthAndHeight();
-				}else {
-					xVal = (int) getStone().getStoneParts().get(i).getX() - getKwidthAndHeight();
-					yVal = (int) getStone().getStoneParts().get(i).getY() - getKwidthAndHeight();
-				}
-			} else if (i == 3) {
-				if (!getStone().isStoneRotated()) {
-					xVal = (int) getStone().getStoneParts().get(i).getX() - getKwidthAndHeight();
-					yVal = (int) getStone().getStoneParts().get(i).getY() - getKwidthAndHeight();
-				} else {
-					xVal = (int) getStone().getStoneParts().get(i).getX() + getKwidthAndHeight();
-					yVal = (int) getStone().getStoneParts().get(i).getY() + getKwidthAndHeight();
-				}
-			}
-			if (i != 2) {
-				getStone().getStoneParts().get(i).setRect(xVal, yVal, stonePartWidth, stonePartHeight);
-			}
-		}
+
 	}
 	
+	
 	/**
-	 * 
+	 * this method rotates the T stone (id = 3)
 	 * @param xVal
 	 * @param yVal
 	 * @param width
@@ -501,21 +496,21 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		int stoneRotateDirection = getStone().getStoneRotateDirection();
 	
 		if (stoneRotateDirection == 0) {
-			rotateStonePart(width, height, 0, 3);
-			rotateStonePart(width, height, 3, 0);
-			rotateStonePart(width, height, 2, 1);
+			rotateStonePart(width, height, 0, 3, 1);
+			rotateStonePart(width, height, 3, 0, 1);
+			rotateStonePart(width, height, 2, 1, 1);
 		} else if (stoneRotateDirection == 1) {
-			rotateStonePart(width, height, 2, 2);
-			rotateStonePart(width, height, 3, 1);
-			rotateStonePart(width, height, 0, 0);
+			rotateStonePart(width, height, 2, 2, 1);
+			rotateStonePart(width, height, 3, 1, 1);
+			rotateStonePart(width, height, 0, 0, 1);
 		} else if (stoneRotateDirection == 2) {
-			rotateStonePart(width, height, 2, 3);
-			rotateStonePart(width, height, 3, 2);
-			rotateStonePart(width, height, 0, 1);
+			rotateStonePart(width, height, 2, 3, 1);
+			rotateStonePart(width, height, 3, 2, 1);
+			rotateStonePart(width, height, 0, 1, 1);
 		} else if (stoneRotateDirection == 3) {
-			rotateStonePart(width, height, 2, 0);
-			rotateStonePart(width, height, 3, 3);
-			rotateStonePart(width, height, 0, 2);
+			rotateStonePart(width, height, 2, 0, 1);
+			rotateStonePart(width, height, 3, 3, 1);
+			rotateStonePart(width, height, 0, 2, 1);
 		}
 	}
 	
@@ -597,23 +592,23 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		int stoneRotateDirection = getStone().getStoneRotateDirection();
 		
 		if(stoneRotateDirection == 0) {
-			rotateStonePart(stonePartWidth, stonePartHeight, 2, 1);
-			rotateStonePart(stonePartWidth, stonePartHeight, 0, 3);
+			rotateStonePart(stonePartWidth, stonePartHeight, 2, 1, 1);
+			rotateStonePart(stonePartWidth, stonePartHeight, 0, 3, 1);
 			xVal = (int)stoneParts.get(3).getX();
 			yVal = (int)stoneParts.get(3).getY() + getKwidthAndHeight() * 2;
 		}else if(stoneRotateDirection == 1) {
-			rotateStonePart(stonePartWidth, stonePartHeight, 2, 2);
-			rotateStonePart(stonePartWidth, stonePartHeight, 0, 0);
+			rotateStonePart(stonePartWidth, stonePartHeight, 2, 2, 1);
+			rotateStonePart(stonePartWidth, stonePartHeight, 0, 0, 1);
 			xVal = (int)stoneParts.get(3).getX() - getKwidthAndHeight() * 2;
 			yVal = (int)stoneParts.get(3).getY();
 		}else if(stoneRotateDirection == 2) {
-			rotateStonePart(stonePartWidth, stonePartHeight, 0, 1);
-			rotateStonePart(stonePartWidth, stonePartHeight, 2, 3);
+			rotateStonePart(stonePartWidth, stonePartHeight, 0, 1, 1);
+			rotateStonePart(stonePartWidth, stonePartHeight, 2, 3, 1);
 			xVal = (int)stoneParts.get(3).getX();
 			yVal = (int)stoneParts.get(3).getY() - getKwidthAndHeight() * 2;
 		}else if(stoneRotateDirection == 3) {
-			rotateStonePart(stonePartWidth, stonePartHeight, 0, 2);
-			rotateStonePart(stonePartWidth, stonePartHeight, 2, 0);
+			rotateStonePart(stonePartWidth, stonePartHeight, 0, 2, 1);
+			rotateStonePart(stonePartWidth, stonePartHeight, 2, 0, 1);
 			xVal = (int)stoneParts.get(3).getX() + getKwidthAndHeight() * 2;
 			yVal = (int)stoneParts.get(3).getY() ;
 		}
@@ -639,23 +634,23 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		if(stoneRotateDirection == 0) {
 			xVal = (int)stoneParts.get(3).getX() + getKwidthAndHeight() * 2;
 			yVal = (int)stoneParts.get(3).getY();
-			rotateStonePart(stonePartWidth, stonePartHeight, 0, 3);
-			rotateStonePart(stonePartWidth, stonePartHeight, 2, 1);
+			rotateStonePart(stonePartWidth, stonePartHeight, 0, 3, 1);
+			rotateStonePart(stonePartWidth, stonePartHeight, 2, 1, 1);
 		}else if(stoneRotateDirection == 1) {
 			xVal = (int)stoneParts.get(3).getX();
 			yVal = (int)stoneParts.get(3).getY() + getKwidthAndHeight() * 2;
-			rotateStonePart(stonePartWidth, stonePartHeight, 2, 2);
-			rotateStonePart(stonePartWidth, stonePartHeight, 0, 0);
+			rotateStonePart(stonePartWidth, stonePartHeight, 2, 2, 1);
+			rotateStonePart(stonePartWidth, stonePartHeight, 0, 0, 1);
 		}else if(stoneRotateDirection == 2) {
 			xVal = (int)stoneParts.get(3).getX() - getKwidthAndHeight() * 2;
 			yVal = (int)stoneParts.get(3).getY() ;
-			rotateStonePart(stonePartWidth, stonePartHeight, 2, 3);
-			rotateStonePart(stonePartWidth, stonePartHeight, 0, 1);
+			rotateStonePart(stonePartWidth, stonePartHeight, 2, 3, 1);
+			rotateStonePart(stonePartWidth, stonePartHeight, 0, 1, 1);
 		}else if(stoneRotateDirection == 3) {
 			xVal = (int)stoneParts.get(3).getX();
 			yVal = (int)stoneParts.get(3).getY() - getKwidthAndHeight() * 2;
-			rotateStonePart(stonePartWidth, stonePartHeight, 2, 0);
-			rotateStonePart(stonePartWidth, stonePartHeight, 0, 2);
+			rotateStonePart(stonePartWidth, stonePartHeight, 2, 0, 1);
+			rotateStonePart(stonePartWidth, stonePartHeight, 0, 2, 1);
 		}
 		getStone().getStoneParts().get(3).setRect(xVal, yVal, stonePartWidth, stonePartHeight);
 		
@@ -669,23 +664,24 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	 * @param stonePartToRotate
 	 * @param direction 0 stands for middle down, 1 stands for left, 2 stands for middle up
 	 * 3 stands for right down 
+	 * @param stoneRotationPoint the rotation Point of the stone as stonePartRectangle
 	 */
-	private void rotateStonePart( int width, int height,int stonePartToRotate,int direction) {
+	private void rotateStonePart( int width, int height,int stonePartToRotate,int direction,int stoneRotationPoint) {
 		ArrayList<Rectangle> stoneParts = getStone().getStoneParts();
 		int xVal = 0;
 		int yVal = 0;
 		if(direction == 0) {
-			 xVal = (int)stoneParts.get(1).getX();
-			 yVal = (int)stoneParts.get(1).getY() + getKwidthAndHeight();
+			 xVal = (int)stoneParts.get(stoneRotationPoint).getX();
+			 yVal = (int)stoneParts.get(stoneRotationPoint).getY() + getKwidthAndHeight();
 		}else if(direction == 1) {
-			xVal = (int)stoneParts.get(1).getX() - getKwidthAndHeight();
-			yVal = (int)stoneParts.get(1).getY();
+			xVal = (int)stoneParts.get(stoneRotationPoint).getX() - getKwidthAndHeight();
+			yVal = (int)stoneParts.get(stoneRotationPoint).getY();
 		}else if(direction == 2) {
-			xVal = (int)stoneParts.get(1).getX();
-			yVal = (int)stoneParts.get(1).getY() - getKwidthAndHeight();
+			xVal = (int)stoneParts.get(stoneRotationPoint).getX();
+			yVal = (int)stoneParts.get(stoneRotationPoint).getY() - getKwidthAndHeight();
 		}else if(direction == 3) {
-			xVal = (int)stoneParts.get(1).getX() + getKwidthAndHeight();
-			yVal = (int)stoneParts.get(1).getY();
+			xVal = (int)stoneParts.get(stoneRotationPoint).getX() + getKwidthAndHeight();
+			yVal = (int)stoneParts.get(stoneRotationPoint).getY();
 		}
 		getStone().getStoneParts().get(stonePartToRotate).setRect(xVal, yVal, width, height);
 	}
@@ -701,10 +697,10 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		boolean hasToMoveFromBorder = false;
 		
 		while(i < stoneParts.size() && !hasToMoveFromBorder) {
-			if(stoneParts.get(i).getX() < 41) {
+			if(stoneParts.get(i).getX() < 61) {
 				moveStoneOneField(2, stoneParts);
 				hasToMoveFromBorder = true;
-			}else if(stoneParts.get(i).getX() > 176) {
+			}else if(stoneParts.get(i).getX() > 205) {
 				moveStoneOneField(1, stoneParts);
 				hasToMoveFromBorder = true;
 			}
@@ -757,12 +753,12 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	 */
 	private void moveIStoneFromBorder() {
 		ArrayList<Rectangle> stoneParts = getStone().getStoneParts();
-		if(stoneParts.get(0).getX() <= 41 && (!getStone().isStoneRotated())) {
+		if(stoneParts.get(stoneParts.size() - 1).getX() <= 45 && (!getStone().isStoneRotated())) {
 			moveStoneOneField(2, stoneParts);
-		}else if(stoneParts.get(stoneParts.size() - 1).getX() >= 176 && (!getStone().isStoneRotated())) {
+		}else if(stoneParts.get(stoneParts.size() - 1).getX() >= 189 && (!getStone().isStoneRotated())) {
 			moveStoneOneField(1, stoneParts);
 			moveStoneOneField(1, stoneParts);
-		}else if(stoneParts.get(stoneParts.size() - 1).getX() >= 161 && (!getStone().isStoneRotated())) {
+		}else if(stoneParts.get(stoneParts.size() - 1).getX() >= 173 && (!getStone().isStoneRotated())) {
 			moveStoneOneField(1, stoneParts);
 		}
 	}
@@ -847,10 +843,10 @@ public class TetrisGameField extends JPanel implements KeyListener {
 			}
 			ArrayList<Rectangle> stoneParts = getStone().getStoneParts();
 
-//					log.info("X1:" + String.valueOf(stoneParts.get(0).getX()));
-//					log.info("X2:" + String.valueOf(stoneParts.get(1).getX()));
-//					log.info("X3:" + String.valueOf(stoneParts.get(2).getX()));
-//					log.info("X4:" + String.valueOf(stoneParts.get(3).getX()));
+					log.info("X1:" + String.valueOf(stoneParts.get(0).getX()));
+					log.info("X2:" + String.valueOf(stoneParts.get(1).getX()));
+					log.info("X3:" + String.valueOf(stoneParts.get(2).getX()));
+					log.info("X4:" + String.valueOf(stoneParts.get(3).getX()));
 
 		} else if (key == KeyEvent.VK_DOWN) {
 			setLayDownKeyPressed(true);
@@ -954,6 +950,39 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		this.gameFieldHeight = gameFieldHeight;
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
+	public int getUpperEdgeXcoord() {
+		return upperEdgeXcoord;
+	}
+
+	/**
+	 * 
+	 * @param upperEdgeXStartCoord
+	 */
+	public void setUpperEdgeXcoord(int upperEdgeXcoord) {
+		this.upperEdgeXcoord = upperEdgeXcoord;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public int getUpperEdgeYcoord() {
+		return upperEdgeYcoord;
+	}
+
+	/**
+	 * 
+	 * @param upperEdgeYStartCoord
+	 */
+	public void setUpperEdgeYcoord(int upperEdgeYcoord) {
+		this.upperEdgeYcoord = upperEdgeYcoord;
+	}
+
+	
 	/**
 	 * (the current stone of the game field)
 	 * @return stone

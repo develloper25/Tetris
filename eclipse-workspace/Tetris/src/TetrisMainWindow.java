@@ -1,11 +1,5 @@
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.util.ArrayList;
-import java.util.logging.Logger;
-
 import javax.swing.JFrame;
 import javax.swing.Timer;
 
@@ -62,7 +56,7 @@ public class TetrisMainWindow extends JFrame {
 	 */
 	private void initSinglePlayerGame() {
 		getMainClass().getContentPane().remove(getMainMenuePanel());
-		TetrisGameField field = new TetrisGameField(10, 20, 15, 500);
+		TetrisGameField field = new TetrisGameField(10, 15, 16, 500);
 		int idFirstStone = field.getRandomNumberForStone(7);
 		int innerRectangleId = field.getRandomNumberForStone(5);
 		TetrisStone stone = new TetrisStone(idFirstStone,innerRectangleId);

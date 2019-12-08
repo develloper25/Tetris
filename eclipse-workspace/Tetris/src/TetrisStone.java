@@ -37,6 +37,14 @@ public class TetrisStone implements Cloneable {
 	// defines the direction we want to rotate the stone
 	private int stoneRotateDirection;
 	
+	// the width and height of a stone part rectangle 
+	private int kWidthAndHeight;
+	
+	// default x start coord value
+	int defaultXstartCoord;
+	
+	// default y start coord value
+	int defaultYstartCoord;
 	
 	/**
 	 * every stone needs an id
@@ -54,9 +62,7 @@ public class TetrisStone implements Cloneable {
 	 * this method creates new stones out of the id
 	 */
 	private void createStone() {
-		setStoneRotateDirection(0);
-		setStoneHeight(14);
-		setStoneWidth(14);
+		initStoneValues();
 		
 		if (getId() == 1) {
 			createIstone();
@@ -76,6 +82,19 @@ public class TetrisStone implements Cloneable {
 	}
 
 	/**
+	 * inits the default Stone values
+	 */
+	private void initStoneValues() {
+		setStoneRotateDirection(0);
+		setStoneHeight(14);
+		setStoneWidth(14);
+		setStoneRotated(false);
+		setkWidthAndHeight(getStoneWidth() + 2); 
+		setDefaultXstartCoord(125);
+		setDefaultYstartCoord(24);
+	}
+	
+	/**
 	 * This method is needed when a new stone is created
 	 * 
 	 * @param id
@@ -93,8 +112,8 @@ public class TetrisStone implements Cloneable {
 	 */
 	private void createIstone() {
 		setColor(Color.cyan);
-		setxStartCoord(101);
-		setyStartCoord(-4);
+		setxStartCoord(getDefaultXstartCoord());
+		setyStartCoord(getDefaultYstartCoord());
 		addParts(getxStartCoord(), getyStartCoord(), 4);
 	}
 
@@ -103,10 +122,10 @@ public class TetrisStone implements Cloneable {
 	 */
 	private void createOstone() {
 		setColor(Color.YELLOW);
-		setxStartCoord(101);
-		setyStartCoord(26);
+		setxStartCoord(getDefaultXstartCoord());
+		setyStartCoord(getDefaultYstartCoord()+ getkWidthAndHeight() * 2);
 		addParts(getxStartCoord(), getyStartCoord(), 2);
-		addParts(getxStartCoord() + 15, getyStartCoord(), 2);
+		addParts(getxStartCoord() + getkWidthAndHeight(), getyStartCoord(), 2);
 	}
 
 	/**
@@ -114,10 +133,10 @@ public class TetrisStone implements Cloneable {
 	 */
 	private void createTstone() {
 		setColor(Color.MAGENTA);
-		setxStartCoord(101);
-		setyStartCoord(11);
+		setxStartCoord(getDefaultXstartCoord());
+		setyStartCoord(getDefaultYstartCoord() + getkWidthAndHeight());
 		addParts(getxStartCoord(), getyStartCoord(), 3);
-		Rectangle rectangleRight = new Rectangle(getxStartCoord() + 15, getyStartCoord() + 15, 14, 14);
+		Rectangle rectangleRight = new Rectangle(getxStartCoord() + getkWidthAndHeight(), getyStartCoord() + getkWidthAndHeight(), 14, 14);
 		getStoneParts().add(rectangleRight);
 	}
 
@@ -126,10 +145,10 @@ public class TetrisStone implements Cloneable {
 	 */
 	private void createSstone() {
 		setColor(Color.GREEN);
-		setxStartCoord(101);
-		setyStartCoord(11);
+		setxStartCoord(getDefaultXstartCoord());
+		setyStartCoord(getDefaultYstartCoord() + getkWidthAndHeight());
 		addParts(getxStartCoord(), getyStartCoord(), 2);
-		addParts(getxStartCoord() + 15, getyStartCoord() + 15, 2);
+		addParts(getxStartCoord() + getkWidthAndHeight(), getyStartCoord() + getkWidthAndHeight(), 2);
 	}
 
 	/**
@@ -137,10 +156,10 @@ public class TetrisStone implements Cloneable {
 	 */
 	private void createZstone() {
 		setColor(Color.RED);
-		setxStartCoord(116);
-		setyStartCoord(11);
+		setxStartCoord(getDefaultXstartCoord() + getkWidthAndHeight());
+		setyStartCoord(getDefaultYstartCoord() + getkWidthAndHeight());
 		addParts(getxStartCoord(), getyStartCoord(), 2);
-		addParts(getxStartCoord() - 15, getyStartCoord() + 15, 2);
+		addParts(getxStartCoord() - getkWidthAndHeight(), getyStartCoord() + getkWidthAndHeight(), 2);
 	}
 
 	/**
@@ -148,10 +167,10 @@ public class TetrisStone implements Cloneable {
 	 */
 	private void createJstone() {
 		setColor(Color.blue);
-		setxStartCoord(101);
-		setyStartCoord(11);
+		setxStartCoord(getDefaultXstartCoord());
+		setyStartCoord(getDefaultYstartCoord() + getkWidthAndHeight());
 		addParts(getxStartCoord(), getyStartCoord(), 3);
-		Rectangle rectangleRight = new Rectangle(getxStartCoord() + 15, getyStartCoord(), 14, 14);
+		Rectangle rectangleRight = new Rectangle(getxStartCoord() + getkWidthAndHeight(), getyStartCoord(), 14, 14);
 		getStoneParts().add(rectangleRight);
 	}
 
@@ -161,10 +180,10 @@ public class TetrisStone implements Cloneable {
 	private void createLstone() {
 		Color orange = new Color(255, 165, 0);
 		setColor(orange);
-		setxStartCoord(116);
-		setyStartCoord(11);
+		setxStartCoord(141);
+		setyStartCoord(getDefaultYstartCoord() + getkWidthAndHeight());
 		addParts(getxStartCoord(), getyStartCoord(), 3);
-		Rectangle rectangeLeft = new Rectangle(getxStartCoord() - 15, getyStartCoord(), 14, 14);
+		Rectangle rectangeLeft = new Rectangle(getxStartCoord() - getkWidthAndHeight(), getyStartCoord(), 14, 14);
 		getStoneParts().add(rectangeLeft);
 	}
 
@@ -179,7 +198,7 @@ public class TetrisStone implements Cloneable {
 		for (int i = 0; i < limit; i++) {
 			Rectangle rectangle = new Rectangle(xVal, yVal, 14, 14);
 			getStoneParts().add(rectangle);
-			yVal += 15;
+			yVal += getkWidthAndHeight();
 		}
 	}
 
@@ -272,18 +291,34 @@ public class TetrisStone implements Cloneable {
 		this.yStartCoord = yStartCoord;
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
 	public int getStoneWidth() {
 		return stoneWidth;
 	}
 
+	/**
+	 * 
+	 * @param stoneWidth
+	 */
 	public void setStoneWidth(int stoneWidth) {
 		this.stoneWidth = stoneWidth;
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
 	public int getStoneHeight() {
 		return stoneHeight;
 	}
 
+	/**
+	 * 
+	 * @param stoneHeight
+	 */
 	public void setStoneHeight(int stoneHeight) {
 		this.stoneHeight = stoneHeight;
 	}
@@ -352,6 +387,30 @@ public class TetrisStone implements Cloneable {
 	 */
 	public void setStoneRotateDirection(int stoneRotateDirection) {
 		this.stoneRotateDirection = stoneRotateDirection;
+	}
+
+	public int getkWidthAndHeight() {
+		return kWidthAndHeight;
+	}
+
+	public void setkWidthAndHeight(int kWidthAndHeight) {
+		this.kWidthAndHeight = kWidthAndHeight;
+	}
+
+	public int getDefaultXstartCoord() {
+		return defaultXstartCoord;
+	}
+
+	public void setDefaultXstartCoord(int defaultXstartCoord) {
+		this.defaultXstartCoord = defaultXstartCoord;
+	}
+
+	public int getDefaultYstartCoord() {
+		return defaultYstartCoord;
+	}
+
+	public void setDefaultYstartCoord(int defaultYstartCoord) {
+		this.defaultYstartCoord = defaultYstartCoord;
 	}
 
 }
