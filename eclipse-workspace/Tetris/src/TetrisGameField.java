@@ -25,7 +25,7 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	private int kWidthAndHeight;
 
 	/** speed of the stones */
-	private int speed;
+	private double speed;
 
 	/** the width of our field*/
 	private int gameFieldWidth;
@@ -41,6 +41,9 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	
 	/** our current stone */
 	private TetrisStone stone;
+	
+	/** the preview of the next stone */
+	private TetrisStone stonePreview;
 
 	/** the stones which already felt down */
 	private ArrayList<TetrisStone> stonesFallen = new ArrayList<TetrisStone>();
@@ -69,7 +72,23 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	/** Our Game field values */
 	private TetrisGameFieldCoord[][] valuesOfField;
 	
+	/** Our score we made */
+	private int score;
+	
+	/** the level we are inside */
+	private int level;
+	
+	/** the lines */
 	private int lines;
+	
+	/** frames per gridcell */
+	private int frames;
+	
+	/** the random number for the next stone(used for preview) */
+	private int randNumberNextStone;
+	
+	/** the random rectangle of the next stone (used for preview) */
+	private int randNumberNextInnerRectangle;
 	
 	
 	/**
@@ -79,7 +98,7 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	 * @param kWidth
 	 * @param speed
 	 */
-	public TetrisGameField(int xMax, int yMax, int kWidth, int speed) {
+	public TetrisGameField(int xMax, int yMax, int kWidth, double speed) {
 		this.xMax = xMax;
 		this.yMax = yMax;
 		this.kWidthAndHeight = kWidth;
@@ -98,15 +117,30 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		setGameFieldHeight(yMax * getKwidthAndHeight() );
 		setUpperEdgeXcoord(60);
 		setUpperEdgeYcoord(70);
+		setScore(0);
+		setLevel(0);
+		setFrames(48);
 		setTimerLayDown(false);
 		setLayDownKeyPressed(false);
 		setGamePaused(false);
 		gameField = new boolean[getyMax()][getxMax()];
 		valuesOfField = new TetrisGameFieldCoord[getyMax()][getxMax()];
+		initStonePreview();
 		initGameFieldCoords();
 	}
 	
+	/**
+	 *  this method inits the stone Preview 
+	 */
+	private void initStonePreview() {
+		setRandNumberNextStone(getRandomNumberForStone(7));
+		setRandNumberNextInnerRectangle(getRandomNumberForStone(5));
+		stonePreview = new TetrisStone(getRandNumberNextStone(), getRandNumberNextInnerRectangle());
+	}
 	
+	/**
+	 *  this method inits the Game Field Coordinates 
+	 */
 	private void initGameFieldCoords() {
 		int xStart = 61;
 		int yStart = 296;
@@ -281,6 +315,10 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		int width = (int) (actRect.getWidth() - 6);
 		int height = (int) (actRect.getHeight() - 6);
 		g2d.fillRect(xVal, yVal, width, height);
+	}
+	
+	private void paintStonePreview(Graphics2D g2d) {
+		
 	}
 	
 	/**
@@ -958,6 +996,72 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		}
 	}
 	
+	/** 
+	 * this method calculates the new speed 
+	 */
+	private void calculateNewSpeed() {
+		/*  Level    Drop speed
+         (frames/line)
+     	00            48 (0.8 s)
+     	01            43 (0.72s)
+     	02            38 (0.63s) 
+     	03            33 (0.55s) 
+     	04            28 (0.47s) 
+     	05            23 (0.38s)
+     	06            18 (0.3 s) 
+     	07            13 (0.22s)
+     	08             8 (0.13s)
+     	09             6 (0.1 s)
+  		10-12          5 (0.08s) 
+  		13-15          4 (0.07s)
+  		16-18          3 (0.05s)
+  		19-28          2 (0.03s)
+    	29+            1 (0.02s)*/
+		setFrames(getFrames() - 5);
+		double gameSpeed =  (getFrames() * 1.0 / 60.0);
+		double gameSpeedRounded =  Math.round(100 * gameSpeed) / 100.00;
+		gameSpeedRounded = gameSpeedRounded *1000;
+		setSpeed(gameSpeedRounded);
+	}
+	
+	/**
+	 * this method calculates the score of the game
+	 */
+	private void calculateScore() {
+		int gameScore = 0;
+		
+		if(getRowsFull().size() == 1) {
+			gameScore = 40 * (getLevel() +1);
+		}else if(getRowsFull().size() == 2) {
+			gameScore = 100 * (getLevel() +1);
+		}else if(getRowsFull().size() == 3) {
+			gameScore = 300 * (getLevel() +1);
+		}else if(getRowsFull().size() == 4) {
+			gameScore = 1200 * (getLevel() +1);
+		}
+		setScore(getScore() + gameScore);
+	}
+	
+	/** this method calculates the next level */
+	private void calculateNextLevel() {
+		int linesActual = getLines() % 10;
+		linesActual += getRowsFull().size();
+		if(linesActual >= 10) {
+			setLevel(getLevel() + 1); 
+			calculateNewSpeed();
+		}
+		setLines(getLines() + getRowsFull().size());
+	}
+	
+	/** 
+	 * do all the logic deletion needs
+	 */
+	private void deleteRows() {
+		deleteFullRows();
+		setStonesDown();
+		resetRowsFull();
+		deleteEmptyStones();
+	}
 	
 	/**
 	 * this method lays the current stone down and creates a new one
@@ -968,7 +1072,7 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	protected void layDownAndCreateNewStone( ) {
 		try {
 			if(isLayDownKeyPressed()) {
-				getTimer().setDelay(getSpeed());
+				getTimer().setDelay((int)getSpeed());
 				setLayDownKeyPressed(false);
 			}
 			rememberStoneFallenPosition();
@@ -976,15 +1080,13 @@ public class TetrisGameField extends JPanel implements KeyListener {
 			layDownStone();
 			resetStone();
 			if(getRowsFull().size() > 0) {
-				deleteFullRows();
-				setStonesDown();
-				resetRowsFull();
-				deleteEmptyStones();
+				calculateScore();
+				calculateNextLevel();
+				deleteRows();
 			}
-			int randNumberStone = getRandomNumberForStone(7);
-			int randInnerRectangleNumber = getRandomNumberForStone(5);
-			getStone().createStone(randNumberStone,randInnerRectangleNumber);
-			
+			getStone().createStone(getRandNumberNextStone(),getRandNumberNextInnerRectangle());
+			setRandNumberNextStone(getRandomNumberForStone(7));
+			setRandNumberNextInnerRectangle(getRandomNumberForStone(5));
 		} catch (CloneNotSupportedException e1) {
 			e1.printStackTrace();
 		}
@@ -1087,7 +1189,7 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	 * 
 	 * @return speed
 	 */
-	public int getSpeed() {
+	public double getSpeed() {
 		return speed;
 	}
 
@@ -1095,7 +1197,7 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	 * sets the game speed
 	 * @param speed
 	 */
-	public void setSpeed(int speed) {
+	public void setSpeed(double speed) {
 		this.speed = speed;
 	}
 
@@ -1180,6 +1282,16 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	public void setStone(TetrisStone stone) {
 		this.stone = stone;
 	}
+
+	public TetrisStone getStonePreview() {
+		return stonePreview;
+	}
+
+
+	public void setStonePreview(TetrisStone stonePreview) {
+		this.stonePreview = stonePreview;
+	}
+
 
 	/**
 	 * the stones which already felt down
@@ -1294,24 +1406,113 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		this.timerLayDown = timerLayDown;
 	}
 
-
+	/**
+	 * 
+	 * @return
+	 */
 	public boolean[][] getGameField() {
 		return gameField;
 	}
 
-
+	/**
+	 * 
+	 * @param gameField
+	 */
 	public void setGameField(boolean[][] gameField) {
 		this.gameField = gameField;
 	}
 
-
+	/**
+	 * 
+	 * @return
+	 */
 	public TetrisGameFieldCoord[][] getValuesOfField() {
 		return valuesOfField;
 	}
 
-
+	/**
+	 * 
+	 * @param valuesOfField
+	 */
 	public void setValuesOfField(TetrisGameFieldCoord[][] valuesOfField) {
 		this.valuesOfField = valuesOfField;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public int getScore() {
+		return score;
+	}
+
+	/**
+	 * 
+	 * @param score
+	 */
+	public void setScore(int score) {
+		this.score = score;
+	}
+
+	/**
+	 * @return
+	 */
+	public int getLevel() {
+		return level;
+	}
+
+	/**
+	 * 
+	 * @param level
+	 */
+	public void setLevel(int level) {
+		this.level = level;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public int getLines() {
+		return lines;
+	}
+
+	/**
+	 * 
+	 * @param lines
+	 */
+	public void setLines(int lines) {
+		this.lines = lines;
+	}
+
+
+	public int getFrames() {
+		return frames;
+	}
+
+
+	public void setFrames(int frames) {
+		this.frames = frames;
+	}
+
+
+	public int getRandNumberNextStone() {
+		return randNumberNextStone;
+	}
+
+
+	public void setRandNumberNextStone(int randNumberNextStone) {
+		this.randNumberNextStone = randNumberNextStone;
+	}
+
+
+	public int getRandNumberNextInnerRectangle() {
+		return randNumberNextInnerRectangle;
+	}
+
+
+	public void setRandNumberNextInnerRectangle(int randNumberNextInnerRectangle) {
+		this.randNumberNextInnerRectangle = randNumberNextInnerRectangle;
 	}
 
 

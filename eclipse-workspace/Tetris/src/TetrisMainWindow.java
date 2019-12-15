@@ -56,7 +56,7 @@ public class TetrisMainWindow extends JFrame {
 	 */
 	private void initSinglePlayerGame() {
 		getMainClass().getContentPane().remove(getMainMenuePanel());
-		TetrisGameField field = new TetrisGameField(10, 15, 16, 500);
+		TetrisGameField field = new TetrisGameField(10, 15, 16,800);
 		int idFirstStone = field.getRandomNumberForStone(7);
 		int innerRectangleId = field.getRandomNumberForStone(5);
 		TetrisStone stone = new TetrisStone(idFirstStone,innerRectangleId);
@@ -92,7 +92,7 @@ public class TetrisMainWindow extends JFrame {
 				 
 			 };
 		
-		Timer timer = new Timer(field.getSpeed(), actListner);
+		Timer timer = new Timer((int)field.getSpeed(), actListner);
 		field.setTimer(timer);
 		timer.start();
 		
