@@ -69,6 +69,7 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	/** Our Game field values */
 	private TetrisGameFieldCoord[][] valuesOfField;
 	
+	private int lines;
 	
 	
 	/**
@@ -904,8 +905,8 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	}
 	
 	/**
-	 * this method sets the GameField boolean values one line down
-	 * and the actual row GameField values if they are true to false
+	 * this method sets the actual row GameField values if they are true to false
+	 * and the GameField row values bigger than that row one line down
 	 * @param row
 	 */
 	void setGameFieldDown(int row) {
@@ -945,6 +946,17 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		}
 	}
 	
+	/**
+	 * this method deletes the empty stones 
+	 * (stonesFallen which doesn´t have a stone part anymore)
+	 */
+	private void deleteEmptyStones() {
+		for(int i = 0; i < getStonesFallen().size();i++) {
+			if(getStonesFallen().get(i).getStoneParts().size() == 0) {
+				getStonesFallen().remove(i);
+			}
+		}
+	}
 	
 	
 	/**
@@ -967,6 +979,7 @@ public class TetrisGameField extends JPanel implements KeyListener {
 				deleteFullRows();
 				setStonesDown();
 				resetRowsFull();
+				deleteEmptyStones();
 			}
 			int randNumberStone = getRandomNumberForStone(7);
 			int randInnerRectangleNumber = getRandomNumberForStone(5);
