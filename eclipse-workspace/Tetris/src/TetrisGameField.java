@@ -48,6 +48,9 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	/** a copy of the stone parts */
 	private ArrayList<Rectangle> stonePartsCopy = new ArrayList<Rectangle>();
 
+	/** a list which contains the integer values of the rows full*/
+	private ArrayList<Integer> rowsFull = new ArrayList<Integer>();
+	
 	/** our timer */
 	private Timer timer;
 	
@@ -59,7 +62,14 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	
 	/** the lay down timer value */
 	private boolean timerLayDown;
+	
+	/** Our Game field which indicates what stone felt down and where*/
+	private boolean [][] gameField;
 
+	/** Our Game field values */
+	private TetrisGameFieldCoord[][] valuesOfField;
+	
+	
 	
 	/**
 	 * constructor for a new Game Field
@@ -77,7 +87,11 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		initGameField();
 	}
 
-	/** inits the Game Field values */
+	
+	/** 
+	 * inits the Game Field values
+	 * 
+	 */
 	private void initGameField() {
 		setGameFieldWidth(xMax * getKwidthAndHeight() );
 		setGameFieldHeight(yMax * getKwidthAndHeight() );
@@ -86,6 +100,27 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		setTimerLayDown(false);
 		setLayDownKeyPressed(false);
 		setGamePaused(false);
+		gameField = new boolean[getyMax()][getxMax()];
+		valuesOfField = new TetrisGameFieldCoord[getyMax()][getxMax()];
+		initGameFieldCoords();
+	}
+	
+	
+	private void initGameFieldCoords() {
+		int xStart = 61;
+		int yStart = 296;
+		
+			for(int k = 0; k < getyMax();k++) {
+				for(int i = 0; i < getxMax();i++) {
+					TetrisGameFieldCoord coordinates = new TetrisGameFieldCoord();
+					coordinates.setxCoord(xStart);
+					coordinates.setyCoord(yStart);
+					valuesOfField[k][i]= coordinates;
+					xStart += 16;
+			}
+			xStart = 61;
+			yStart -= 16;
+		}
 	}
 
 	/**
@@ -465,7 +500,6 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		
 		ArrayList<Rectangle> stoneParts = getStone().getStoneParts();
 		
-
 		if (!getStone().isStoneRotated()) {
 			rotateStonePart(stonePartWidth, stonePartHeight, 3, 1, 2);
 			rotateStonePart(stonePartWidth, stonePartHeight, 1, 3, 2);
@@ -784,7 +818,135 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		}
 	}
 	
+	/**
+	 * this method remembers the position of every stone which felt down
+	 */
+	private void rememberStoneFallenPosition() {
+		ArrayList<Rectangle> stoneParts = getStone().getStoneParts();
+		
+		for(int i = 0; i < getyMax(); i++) {
+			for(int k = 0; k < getxMax();k++) {
+				int xFieldCoord = getValuesOfField()[i][k].getxCoord();
+				int yFieldCoord = getValuesOfField()[i][k].getyCoord();
+				
+				for(int m = 0; m < stoneParts.size();m++) {
+					if( xFieldCoord == stoneParts.get(m).getX() && yFieldCoord == stoneParts.get(m).getY()) {
+						gameField[i][k]=true;
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * this method indiactes which rows are full
+	 */
+	private void findFullRows() {
+		
+		int columnCount = 0;
+		
+		ArrayList<Integer> rows = new ArrayList<Integer>();
+		
+		for(int i = 0; i < getyMax();i++) {
+			for(int k = 0; k < getxMax();k++) {
+				if(getGameField()[i][k] == true) {
+					columnCount ++;
+				}
+			}
+			//now a row is full
+			if(columnCount == getxMax() ) {
+				// remember which row it is !!!
+				rows.add(i);
+			}
+			columnCount = 0;
+		}
+		setRowsFull(rows);
+	}
 
+	/**
+	 * this method deletes the full rows
+	 */
+	private void deleteFullRows() {
+		
+		for(int s = getRowsFull().size() - 1; s >= 0;s--) {
+			
+			int row = getRowsFull().get(s);
+			int yVal = getValuesOfField()[row][0].getyCoord();
+			
+			for(int k = 0; k < stonesFallen.size();k++) {
+				TetrisStone stoneFallen = stonesFallen.get(k);
+				for(int m = stoneFallen.getStoneParts().size() - 1; m >= 0; m--) {
+					if(stoneFallen.getStoneParts().get(m).getY() == yVal) {
+						// remove the rectangles full
+						stoneFallen.getStoneParts().remove(m);
+					}
+				}
+			}
+		}
+	}
+	
+	/** 
+	 * this method resets the full rows and the gameField values
+	 *  
+	 */
+	private void resetRowsFull() {
+		for(int m = getRowsFull().size() -1; m >= 0;m--) {
+			int row = getRowsFull().get(m);
+			//reset the row itself
+			for(int col = 0;col < getxMax();col++) {
+				gameField[row][col] = false;
+			}
+			//reset all values bigger than the row one line down
+			setGameFieldDown(row);
+		}
+		// finally empty the list
+		getRowsFull().clear();
+	}
+	
+	/**
+	 * this method sets the GameField boolean values one line down
+	 * and the actual row GameField values if they are true to false
+	 * @param row
+	 */
+	void setGameFieldDown(int row) {
+		for (int numRow = row; numRow < getyMax(); numRow++) {
+			for (int col = 0; col < getxMax(); col++) {
+				if (getGameField()[numRow][col] == true) {
+						gameField[numRow][col] = false;
+						// set it one line down
+						gameField[numRow -1][col] = true;
+				}
+			}
+		}
+	}
+	
+	/**
+	 * this method sets the stone values one line down 
+	 */
+	private void setStonesDown() {
+		
+		for(int count = getRowsFull().size() - 1; count >= 0;count --) {
+			int row = getRowsFull().get(count);
+			int yValRow = getValuesOfField()[row][0].getyCoord();
+			
+			for(int i = 0; i < getStonesFallen().size();i++) {
+				TetrisStone stoneFallen = getStonesFallen().get(i);
+				
+				for(int k = 0; k < stoneFallen.getStoneParts().size();k++) {
+					ArrayList<Rectangle> stoneParts = stoneFallen.getStoneParts();
+					
+					if(stoneParts.get(k).getY() < yValRow) {
+						int xValStonePart = (int)stoneParts.get(k).getX();
+						int yValStonePart = (int)stoneParts.get(k).getY();
+						stoneParts.get(k).setLocation(xValStonePart, yValStonePart + getKwidthAndHeight());
+					}
+				}
+			}
+		}
+	}
+	
+	
+	
 	/**
 	 * this method lays the current stone down and creates a new one
 	 * 
@@ -797,11 +959,19 @@ public class TetrisGameField extends JPanel implements KeyListener {
 				getTimer().setDelay(getSpeed());
 				setLayDownKeyPressed(false);
 			}
+			rememberStoneFallenPosition();
+			findFullRows();
 			layDownStone();
 			resetStone();
+			if(getRowsFull().size() > 0) {
+				deleteFullRows();
+				setStonesDown();
+				resetRowsFull();
+			}
 			int randNumberStone = getRandomNumberForStone(7);
 			int randInnerRectangleNumber = getRandomNumberForStone(5);
 			getStone().createStone(randNumberStone,randInnerRectangleNumber);
+			
 		} catch (CloneNotSupportedException e1) {
 			e1.printStackTrace();
 		}
@@ -839,7 +1009,6 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		} else if (key == KeyEvent.VK_UP) {
 			if (!touchesAnotherStone(3) && !touchesGroundAfterMoving()) {
 				rotateStone();
-
 			}
 			ArrayList<Rectangle> stoneParts = getStone().getStoneParts();
 
@@ -1051,6 +1220,23 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	 * 
 	 * @return
 	 */
+	public ArrayList<Integer> getRowsFull() {
+		return rowsFull;
+	}
+
+	/**
+	 * 
+	 * @param rowsFull
+	 */
+	public void setRowsFull(ArrayList<Integer> rowsFull) {
+		this.rowsFull = rowsFull;
+	}
+
+
+	/**
+	 * 
+	 * @return
+	 */
 	public boolean isGamePaused() {
 		return gamePaused;
 	}
@@ -1093,6 +1279,26 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	 */
 	public void setTimerLayDown(boolean timerLayDown) {
 		this.timerLayDown = timerLayDown;
+	}
+
+
+	public boolean[][] getGameField() {
+		return gameField;
+	}
+
+
+	public void setGameField(boolean[][] gameField) {
+		this.gameField = gameField;
+	}
+
+
+	public TetrisGameFieldCoord[][] getValuesOfField() {
+		return valuesOfField;
+	}
+
+
+	public void setValuesOfField(TetrisGameFieldCoord[][] valuesOfField) {
+		this.valuesOfField = valuesOfField;
 	}
 
 
