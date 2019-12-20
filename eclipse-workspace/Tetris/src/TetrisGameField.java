@@ -1,4 +1,5 @@
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -90,6 +91,11 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	/** the random rectangle of the next stone (used for preview) */
 	private int randNumberNextInnerRectangle;
 	
+	/** the default stone preview start x coord */
+	private int defStonePreviewStartX;
+	
+	/** the default stone preview start y coord */
+	private int defStonePreviewStartY;
 	
 	/**
 	 * constructor for a new Game Field
@@ -135,7 +141,9 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	private void initStonePreview() {
 		setRandNumberNextStone(getRandomNumberForStone(7));
 		setRandNumberNextInnerRectangle(getRandomNumberForStone(5));
-		stonePreview = new TetrisStone(getRandNumberNextStone(), getRandNumberNextInnerRectangle());
+		setDefStonePreviewStartX(xMax * getKwidthAndHeight() + getKwidthAndHeight() * 7);
+		setDefStonePreviewStartY(yMax * getKwidthAndHeight() - getKwidthAndHeight() );
+		createStonePreview();
 	}
 	
 	/**
@@ -166,20 +174,24 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		super.paintComponent(g2d);
 		g2d.setColor(Color.GRAY);
 		// Spielfeld Rand zeichnen links
-		g2d.fillRect(40, getUpperEdgeYcoord(), 20, gameFieldHeight);
+		g2d.fillRect(40, getUpperEdgeYcoord(), 20, getGameFieldHeight());
 		// Spielfeld Rand zeichnen rechts
-		g2d.fillRect(gameFieldWidth + getUpperEdgeXcoord(), getUpperEdgeYcoord(), 20, gameFieldHeight);
+		g2d.fillRect(getGameFieldWidth() + getUpperEdgeXcoord(), getUpperEdgeYcoord(), 20, getGameFieldHeight());
 		// Spielfeld Rand zeichnen unten
 		Color brown = new Color(205, 133, 63);
 		g2d.setColor(brown);
-		g2d.fillRect(40, gameFieldHeight + getUpperEdgeYcoord(), gameFieldWidth + getUpperEdgeXcoord() - 20, 2);
+		g2d.fillRect(40, getGameFieldHeight() + getUpperEdgeYcoord(), getGameFieldWidth() + getUpperEdgeXcoord() - 20, 2);
 		g2d.setColor(Color.white);
 		// Spielfeld füllen
-		g2d.fillRect(getUpperEdgeXcoord(), getUpperEdgeYcoord(), gameFieldWidth - 1, gameFieldHeight - 1);
+		g2d.fillRect(getUpperEdgeXcoord(), getUpperEdgeYcoord(), getGameFieldWidth() - 1, getGameFieldHeight() - 1);
 		// Stein zeichnen
 		paintStone(g2d);
 		// paint stones which already felt down
 		paintStonesFallen(g2d);
+		// paint stone preview
+		paintStonePreview(g2d);
+		// 
+		paintRightGameInfo(g2d);
 	}
 
 	/**
@@ -210,7 +222,7 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		for (int i = 0; i < stoneParts.size(); i++) {
 			Rectangle actRect = stoneParts.get(i);
 			// just draw the parts which are inside the field
-			if (actRect.getY() > 26) {
+			if (actRect.getY() > 56) {
 				g2d.setColor(getStone().getColor());
 				g2d.fill(actRect);
 				paintStoneOutline(actRect, g2d);
@@ -253,6 +265,79 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		} 
 		// if innerRectangleId == 5 do nothing
 	}
+	
+	/**
+	 * paints the preview stone of our game
+	 * @param g2d
+	 */
+	private void paintStonePreview(Graphics2D g2d) {
+		ArrayList<Rectangle> stoneParts = getStonePreview().getStoneParts();
+		for (int i = 0; i < stoneParts.size(); i++) {
+			g2d.setColor(getStonePreview().getColor());
+			Rectangle actRect = stoneParts.get(i);
+			g2d.fill(actRect);
+			paintStoneOutline(actRect, g2d);
+			paintStoneInnerRectangles(actRect, g2d,getStonePreview().getInnerRectangleId());
+		}
+	}
+	
+	/** 
+	 * do all the painting logic 
+	 * for the game info 
+	 * on the right side
+	 */
+	private void paintRightGameInfo(Graphics2D g2d) {
+		paintGameInfoBorder(g2d);
+		paintGameInfoScore(g2d);
+		paintGameInfoLevel(g2d);
+	}
+
+	/**
+	 * this method paints the game info border
+	 * @param g2d
+	 */
+	private void paintGameInfoBorder(Graphics2D g2d) {
+		g2d.setColor(Color.black);
+		int xVal = xMax * getKwidthAndHeight() + getKwidthAndHeight() * 5;
+		int yVal = yMax * getKwidthAndHeight() - getKwidthAndHeight() * 10 - 10;
+		g2d.drawRect( xVal, yVal, 100, getGameFieldHeight());
+	}
+	
+	/**
+	 * this method paint the game info score
+	 * @param g2d
+	 */
+	private void paintGameInfoScore(Graphics2D g2d) {
+		g2d.setColor(Color.black);
+		g2d.setFont( new Font( "Verdana", Font.BOLD, 20 ) );
+		int xVal = xMax * getKwidthAndHeight() + getKwidthAndHeight() * 7 - 10;
+		int yVal = yMax * getKwidthAndHeight() - getKwidthAndHeight() * 9 ;
+		g2d.drawString("SCORE", xVal, yVal);
+		// draw the score itself
+		g2d.drawString(Integer.toString(getScore()),xVal + getKwidthAndHeight() + 5, yVal +  getKwidthAndHeight() * 2 + 4);
+		// draw now the lines 
+		g2d.setColor(Color.gray);
+		int xLineVal = xVal - getKwidthAndHeight() * 2 + 10;
+		int yLineVal = yVal + 15;
+		g2d.drawLine(xLineVal, yLineVal, xLineVal + getKwidthAndHeight() * 6 + 4, yLineVal );
+		g2d.drawLine(xLineVal, yLineVal + 25, xLineVal + getKwidthAndHeight() * 6 + 4, yLineVal + 25);
+		// draw now the rectangle around it
+		yVal = yVal - getKwidthAndHeight() - 7;
+		g2d.drawRoundRect(xVal - 10, yVal + 3, 88, 25, 5, 5);
+		
+	}
+	
+	/** 
+	 * paints the game info for the level
+	 * @param g2d
+	 */
+	private void paintGameInfoLevel(Graphics2D g2d) {
+		g2d.setColor(Color.black);
+		int xVal = xMax * getKwidthAndHeight() + getKwidthAndHeight() * 6 + 7;
+		int yVal = yMax * getKwidthAndHeight() - getKwidthAndHeight() * 5 + 5 ;
+		g2d.drawString("LEVEL", xVal, yVal);
+	}
+	
 	
 	/**
 	 * this method draws the inner Rectangles for the stones
@@ -317,9 +402,7 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		g2d.fillRect(xVal, yVal, width, height);
 	}
 	
-	private void paintStonePreview(Graphics2D g2d) {
-		
-	}
+
 	
 	/**
 	 * 
@@ -1087,13 +1170,28 @@ public class TetrisGameField extends JPanel implements KeyListener {
 			getStone().createStone(getRandNumberNextStone(),getRandNumberNextInnerRectangle());
 			setRandNumberNextStone(getRandomNumberForStone(7));
 			setRandNumberNextInnerRectangle(getRandomNumberForStone(5));
+			createStonePreview();
 		} catch (CloneNotSupportedException e1) {
 			e1.printStackTrace();
 		}
 	}
 
 	/**
-	 * @return the randNumber which is the id which indicates the stone
+	 * This method creates a stone Preview
+	 */
+	private void createStonePreview() {
+		int randNextStone = getRandNumberNextStone();
+		int randInnerRectNextStone = getRandNumberNextInnerRectangle();
+		int defaultXstart = getDefStonePreviewStartX();
+		int defaultYstart = getDefStonePreviewStartY();
+		TetrisStone stonePrev = new TetrisStone(randNextStone, randInnerRectNextStone,defaultXstart,defaultYstart);
+		setStonePreview(stonePrev);
+	}
+	
+	
+	/**
+	 * @return the randNumber 
+	 * which is the id which indicates the stone
 	 */
 	protected int getRandomNumberForStone(int max) {
 		int randNumber = (int) (Math.random() * max + 1);
@@ -1513,6 +1611,26 @@ public class TetrisGameField extends JPanel implements KeyListener {
 
 	public void setRandNumberNextInnerRectangle(int randNumberNextInnerRectangle) {
 		this.randNumberNextInnerRectangle = randNumberNextInnerRectangle;
+	}
+
+
+	public int getDefStonePreviewStartX() {
+		return defStonePreviewStartX;
+	}
+
+
+	public void setDefStonePreviewStartX(int defStonePreviewStartX) {
+		this.defStonePreviewStartX = defStonePreviewStartX;
+	}
+
+
+	public int getDefStonePreviewStartY() {
+		return defStonePreviewStartY;
+	}
+
+
+	public void setDefStonePreviewStartY(int defStonePreviewStartY) {
+		this.defStonePreviewStartY = defStonePreviewStartY;
 	}
 
 

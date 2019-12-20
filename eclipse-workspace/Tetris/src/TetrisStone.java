@@ -55,15 +55,32 @@ public class TetrisStone implements Cloneable {
 		stoneParts = new ArrayList<Rectangle>();
 		this.id = id;
 		this.innerRectangleId = innerRectangleId;
+		initStoneValues();
+		initDefaultCoords();
 		createStone();
 	}
 
 	/**
+	 * Special constructor for stone preview
+	 * @param id
+	 * @param innerRectangleId
+	 * @param defaultXstartCoord
+	 * @param yDefaultXstartCoord
+	 */
+	public TetrisStone(int id, int innerRectangleId, int defaultXstartCoord, int yDefaultXstartCoord) {
+		stoneParts = new ArrayList<Rectangle>();
+		this.id = id;
+		this.innerRectangleId = innerRectangleId;
+		initStoneValues();
+		initDefaultCoords(defaultXstartCoord,yDefaultXstartCoord);
+		createStone();
+	}
+	
+	
+	/**
 	 * this method creates new stones out of the id
 	 */
 	private void createStone() {
-		initStoneValues();
-		
 		if (getId() == 1) {
 			createIstone();
 		} else if (getId() == 2) {
@@ -80,19 +97,6 @@ public class TetrisStone implements Cloneable {
 			createLstone();
 		}
 	}
-
-	/**
-	 * inits the default Stone values
-	 */
-	private void initStoneValues() {
-		setStoneRotateDirection(0);
-		setStoneHeight(14);
-		setStoneWidth(14);
-		setStoneRotated(false);
-		setkWidthAndHeight(getStoneWidth() + 2); 
-		setDefaultXstartCoord(125);
-		setDefaultYstartCoord(24);
-	}
 	
 	/**
 	 * This method is needed when a new stone is created
@@ -104,7 +108,36 @@ public class TetrisStone implements Cloneable {
 		setInnerRectangleId(innerRectangleId);
 		createStone();
 	}
+	
+	/**
+	 *  inits the default coords for the start
+	 */
+	private void initDefaultCoords() {
+		setDefaultXstartCoord(125);
+		setDefaultYstartCoord(24);
+	}
 
+	/**
+	 *  inits the default coords for the start
+	 *  with the given parameters
+	 */
+	private void initDefaultCoords(int defaultXstartCoord, int defaultYstartCoord) {
+		setDefaultXstartCoord(defaultXstartCoord);
+		setDefaultYstartCoord(defaultYstartCoord);
+	}
+	
+	
+	/**
+	 * inits the default Stone values
+	 */
+	private void initStoneValues() {
+		setStoneRotateDirection(0);
+		setStoneHeight(14);
+		setStoneWidth(14);
+		setStoneRotated(false);
+		setkWidthAndHeight(getStoneWidth() + 2); 
+	}
+	
 
 	/**
 	 * The I rectangles been added inside here and the values for the I stone been
@@ -180,7 +213,7 @@ public class TetrisStone implements Cloneable {
 	private void createLstone() {
 		Color orange = new Color(255, 165, 0);
 		setColor(orange);
-		setxStartCoord(141);
+		setxStartCoord(getDefaultXstartCoord());
 		setyStartCoord(getDefaultYstartCoord() + getkWidthAndHeight());
 		addParts(getxStartCoord(), getyStartCoord(), 3);
 		Rectangle rectangeLeft = new Rectangle(getxStartCoord() - getkWidthAndHeight(), getyStartCoord(), 14, 14);
