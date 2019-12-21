@@ -74,6 +74,12 @@ public class TetrisMainWindow extends JFrame {
 		}.start();
 	}
 	
+	
+	private void backToMainMenue() {
+		getMainClass().getContentPane().removeAll();
+		getMainClass().getContentPane().add(getMainMenuePanel());
+		getMainClass().getContentPane().revalidate();
+	}
 
 	/**
 	 * this is the main loop of our game
@@ -102,6 +108,10 @@ public class TetrisMainWindow extends JFrame {
 					Timer layDownTimer = new Timer(50,actListner);
 					initLayDownTimer(field, layDownTimer);
 				}
+				if(field.isGoBackToMainMenue()) {
+					gameIsRunning = false;
+					backToMainMenue();
+				} 
 				// give the Thread time to load
 				Thread.sleep(1);
 				repaint();

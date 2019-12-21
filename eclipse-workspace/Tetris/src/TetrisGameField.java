@@ -3,12 +3,17 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
@@ -100,7 +105,25 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	private int defStonePreviewStartY;
 	
 	/** the pause label */
-	JLabel pause;
+	private JLabel pauseLabel;
+	
+	/** the game over label */
+	private JLabel gameOverLabel;
+	
+	/** defines if the game is lost or not */
+	protected boolean gameIsOver;
+	
+	/** our Menue Bar */
+	private JMenuBar menuBar;
+	
+	/** the item to start a new game */
+	private JMenuItem newGameItem;
+	
+	/** the item to go back to the main menue */
+	private JMenuItem backToMainMenue;
+	
+	/** */
+	private boolean goBackToMainMenue;
 	
 	/**
 	 * constructor for a new Game Field
@@ -124,13 +147,7 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	 * 
 	 */
 	private void initGameField() {
-		setGameFieldWidth(xMax * getKwidthAndHeight() );
-		setGameFieldHeight(yMax * getKwidthAndHeight() );
-		setUpperEdgeXcoord(60);
-		setUpperEdgeYcoord(70);
-		setScore(0);
-		setLevel(0);
-		setFrames(48);
+		initGameFieldValues();
 		setTimerLayDown(false);
 		setLayDownKeyPressed(false);
 		setGamePaused(false);
@@ -139,7 +156,23 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		initStonePreview();
 		initGameFieldCoords();
 		initPauseLabel();
+		initGameOverLabel();
+		initGameMenueBar();
 	}
+	
+	
+	
+	/** this method sets all the game field values we need */
+	private void initGameFieldValues() {
+		setGameFieldWidth(xMax * getKwidthAndHeight() );
+		setGameFieldHeight(yMax * getKwidthAndHeight() );
+		setUpperEdgeXcoord(60);
+		setUpperEdgeYcoord(70);
+		setScore(0);
+		setLevel(0);
+		setFrames(48);
+	}
+	
 	
 	/**
 	 *  this method inits the stone Preview 
@@ -176,12 +209,47 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	 * this method inits the pause jlabel
 	 */
 	private void initPauseLabel() {
-		pause = new JLabel("PAUSE");
+		pauseLabel = new JLabel("PAUSE");
 		int xVal = xMax * getKwidthAndHeight() + getKwidthAndHeight() * 7;
 		int yVal = 12 * getKwidthAndHeight() ;
-		pause.setBounds(xVal, yVal, 50, 20);
-		this.add(pause);
-		pause.setVisible(false);
+		pauseLabel.setBounds(xVal, yVal, 50, 20);
+		this.add(pauseLabel);
+		pauseLabel.setVisible(false);
+	}
+	
+	
+	/**
+	 *  this method inits the game over label
+	 */
+	private void initGameOverLabel() {
+		gameOverLabel = new JLabel("GAME OVER");
+		gameOverLabel.setFont(new Font("VERDANA",Font.BOLD,20));
+		gameOverLabel.setForeground(Color.BLACK);
+		int xVal = getKwidthAndHeight() * 4 + 10;
+		int yVal = getKwidthAndHeight() * 7 ;
+		gameOverLabel.setBounds(xVal, yVal, 200, 20);
+		this.add(gameOverLabel);
+		gameOverLabel.setVisible(false);
+	}
+	
+	
+	/**
+	 * this method inits the game menue bar
+	 * and adds all the items it needs 
+	 */
+	private void initGameMenueBar() {
+		menuBar = new JMenuBar();
+		menuBar.setBounds(0, 0, 50, 20);
+		menuBar.setVisible(true);
+		add(menuBar);
+		JMenu gameMenue = new JMenu("GAME");
+		menuBar.add(gameMenue);
+		newGameItem = new JMenuItem("New  Game");
+		newGameItem.addActionListener(new MenueItemListener());
+		backToMainMenue = new JMenuItem("Main Menue");
+		backToMainMenue.addActionListener(new MenueItemListener());
+		gameMenue.add(newGameItem);
+		gameMenue.add(backToMainMenue);
 	}
 	
 	
@@ -1183,28 +1251,36 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	 * @param moveUp defines if the stone needs to be movedUp before is hits the
 	 *               ground for example
 	 */
-	protected void layDownAndCreateNewStone( ) {
-		try {
-			if(isLayDownKeyPressed()) {
-				getTimer().setDelay((int)getSpeed());
-				setLayDownKeyPressed(false);
+	protected void layDownAndCreateNewStone() {
+		if (!isGameIsOver()) {
+			try {
+				if (isLayDownKeyPressed()) {
+					getTimer().setDelay((int) getSpeed());
+					setLayDownKeyPressed(false);
+				}
+				rememberStoneFallenPosition();
+				findFullRows();
+				layDownStone();
+				resetStone();
+				if (getRowsFull().size() > 0) {
+					calculateScore();
+					calculateNextLevel();
+					deleteRows();
+				}
+				getStone().createStone(getRandNumberNextStone(), getRandNumberNextInnerRectangle());
+				setRandNumberNextStone(getRandomNumberForStone(7));
+				setRandNumberNextInnerRectangle(getRandomNumberForStone(5));
+				createStonePreview();
+				// watch if the game might be over now
+				if (gameOver()) {
+					setGameIsOver(true);
+					gameOverLabel.setVisible(true);
+				}
+			} catch (CloneNotSupportedException e1) {
+				e1.printStackTrace();
 			}
-			rememberStoneFallenPosition();
-			findFullRows();
-			layDownStone();
-			resetStone();
-			if(getRowsFull().size() > 0) {
-				calculateScore();
-				calculateNextLevel();
-				deleteRows();
-			}
-			getStone().createStone(getRandNumberNextStone(),getRandNumberNextInnerRectangle());
-			setRandNumberNextStone(getRandomNumberForStone(7));
-			setRandNumberNextInnerRectangle(getRandomNumberForStone(5));
-			createStonePreview();
-		} catch (CloneNotSupportedException e1) {
-			e1.printStackTrace();
 		}
+
 	}
 
 	/**
@@ -1224,7 +1300,7 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	 * the game
 	 * @return
 	 */
-	protected boolean gameOver() {
+	private boolean gameOver() {
 		boolean gameIsLost = false;
 		for(int i = 0; i < getStonesFallen().size();i++) {
 			ArrayList<Rectangle> stoneParts = getStonesFallen().get(i).getStoneParts();
@@ -1236,6 +1312,13 @@ public class TetrisGameField extends JPanel implements KeyListener {
 			}
 		}
 		return gameIsLost;
+	}
+	
+	
+	private void initNewGame() {
+		getStonesFallen().clear();
+		setLevel(0);
+		setScore(0);
 	}
 	
 	
@@ -1263,25 +1346,25 @@ public class TetrisGameField extends JPanel implements KeyListener {
 
 		if (key == KeyEvent.VK_LEFT) {
 			if (movePossible(1) && !touchesAnotherStone(1)) {
-				if(!gamePaused) {
+				if(!gamePaused || isGameIsOver()) {
 					moveStoneOneField(1, getStone().getStoneParts());
 				}
 			}
 		} else if (key == KeyEvent.VK_RIGHT) {
 			if (movePossible(2) && !touchesAnotherStone(2)) {
-				if(!gamePaused) {
+				if(!gamePaused || isGameIsOver()) {
 					moveStoneOneField(2, getStone().getStoneParts());
 				}
 			}
 		} else if (key == KeyEvent.VK_UP) {
 			if (!touchesAnotherStone(3) && !touchesGroundAfterMoving()) {
-				if(!gamePaused) {
+				if(!gamePaused || isGameIsOver()) {
 					rotateStone();
 				}
 			}
 
 		} else if (key == KeyEvent.VK_DOWN) {
-			if(!gamePaused) {
+			if(!gamePaused || isGameIsOver()) {
 				setLayDownKeyPressed(true);
 				setTimerLayDown(true);
 			}
@@ -1289,11 +1372,11 @@ public class TetrisGameField extends JPanel implements KeyListener {
 			if (!isGamePaused()) {
 				setGamePaused(true);
 				getTimer().stop();
-				pause.setVisible(true);
+				pauseLabel.setVisible(true);
 			} else {
 				setGamePaused(false);
 				getTimer().restart();
-				pause.setVisible(false);
+				pauseLabel.setVisible(false);
 			}
 		}
 
@@ -1305,7 +1388,18 @@ public class TetrisGameField extends JPanel implements KeyListener {
 
 	}
 	
-	
+	class MenueItemListener implements ActionListener{
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if(e.getSource().equals(newGameItem)) {
+				
+			}else if(e.getSource().equals(backToMainMenue)) {
+				setGoBackToMainMenue(true);
+			}
+		}
+		
+	}
 
 	/** returns the xMax value */
 	public int getxMax() {
@@ -1685,6 +1779,26 @@ public class TetrisGameField extends JPanel implements KeyListener {
 
 	public void setDefStonePreviewStartY(int defStonePreviewStartY) {
 		this.defStonePreviewStartY = defStonePreviewStartY;
+	}
+
+
+	public boolean isGameIsOver() {
+		return gameIsOver;
+	}
+
+
+	public void setGameIsOver(boolean gameIsOver) {
+		this.gameIsOver = gameIsOver;
+	}
+
+
+	public boolean isGoBackToMainMenue() {
+		return goBackToMainMenue;
+	}
+
+
+	public void setGoBackToMainMenue(boolean goBackToMainMenue) {
+		this.goBackToMainMenue = goBackToMainMenue;
 	}
 
 
