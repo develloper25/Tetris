@@ -7,6 +7,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.logging.Logger;
+
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
@@ -97,6 +99,9 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	/** the default stone preview start y coord */
 	private int defStonePreviewStartY;
 	
+	/** the pause label */
+	JLabel pause;
+	
 	/**
 	 * constructor for a new Game Field
 	 * @param xMax
@@ -133,6 +138,7 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		valuesOfField = new TetrisGameFieldCoord[getyMax()][getxMax()];
 		initStonePreview();
 		initGameFieldCoords();
+		initPauseLabel();
 	}
 	
 	/**
@@ -141,8 +147,8 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	private void initStonePreview() {
 		setRandNumberNextStone(getRandomNumberForStone(7));
 		setRandNumberNextInnerRectangle(getRandomNumberForStone(5));
-		setDefStonePreviewStartX(xMax * getKwidthAndHeight() + getKwidthAndHeight() * 7);
-		setDefStonePreviewStartY(yMax * getKwidthAndHeight() - getKwidthAndHeight() );
+		setDefStonePreviewStartX(xMax * getKwidthAndHeight() + getKwidthAndHeight() * 8 -5);
+		setDefStonePreviewStartY(yMax * getKwidthAndHeight() - getKwidthAndHeight() + 7);
 		createStonePreview();
 	}
 	
@@ -166,6 +172,19 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		}
 	}
 
+	/**
+	 * this method inits the pause jlabel
+	 */
+	private void initPauseLabel() {
+		pause = new JLabel("PAUSE");
+		int xVal = xMax * getKwidthAndHeight() + getKwidthAndHeight() * 7;
+		int yVal = 12 * getKwidthAndHeight() ;
+		pause.setBounds(xVal, yVal, 50, 20);
+		this.add(pause);
+		pause.setVisible(false);
+	}
+	
+	
 	/**
 	 * the main painting method where all the drawing takes place
 	 */
@@ -271,6 +290,14 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	 * @param g2d
 	 */
 	private void paintStonePreview(Graphics2D g2d) {
+		// paint the border around it
+		g2d.setColor(Color.black);
+		int xValRect = xMax * getKwidthAndHeight() + getKwidthAndHeight() * 6 ;
+		int yValRect = yMax * getKwidthAndHeight() - getKwidthAndHeight() ;
+		g2d.drawRoundRect(xValRect, yValRect, 80, 80, 10, 10);
+		g2d.setColor(Color.white);
+		g2d.fillRoundRect(xValRect + 1, yValRect + 1, 79, 79, 10, 10);
+		
 		ArrayList<Rectangle> stoneParts = getStonePreview().getStoneParts();
 		for (int i = 0; i < stoneParts.size(); i++) {
 			g2d.setColor(getStonePreview().getColor());
@@ -309,12 +336,12 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	 */
 	private void paintGameInfoScore(Graphics2D g2d) {
 		g2d.setColor(Color.black);
-		g2d.setFont( new Font( "Verdana", Font.BOLD, 20 ) );
+		g2d.setFont( new Font( "ARIAL", Font.BOLD, 15 ) );
 		int xVal = xMax * getKwidthAndHeight() + getKwidthAndHeight() * 7 - 10;
 		int yVal = yMax * getKwidthAndHeight() - getKwidthAndHeight() * 9 ;
 		g2d.drawString("SCORE", xVal, yVal);
 		// draw the score itself
-		g2d.drawString(Integer.toString(getScore()),xVal + getKwidthAndHeight() + 5, yVal +  getKwidthAndHeight() * 2 + 4);
+		g2d.drawString(Integer.toString(getScore()),xVal , yVal +  getKwidthAndHeight() * 2 + 4);
 		// draw now the lines 
 		g2d.setColor(Color.gray);
 		int xLineVal = xVal - getKwidthAndHeight() * 2 + 10;
@@ -336,6 +363,10 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		int xVal = xMax * getKwidthAndHeight() + getKwidthAndHeight() * 6 + 7;
 		int yVal = yMax * getKwidthAndHeight() - getKwidthAndHeight() * 5 + 5 ;
 		g2d.drawString("LEVEL", xVal, yVal);
+		g2d.drawString(Integer.toString(getLevel()), xVal + getKwidthAndHeight() + 5 , yVal + getKwidthAndHeight()  );
+		g2d.setColor(Color.gray);
+		g2d.drawRoundRect(xVal  - 4, yVal - getKwidthAndHeight(), 80, 35, 10, 10);
+		
 	}
 	
 	
@@ -1030,7 +1061,7 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	 * and the GameField row values bigger than that row one line down
 	 * @param row
 	 */
-	void setGameFieldDown(int row) {
+	private void setGameFieldDown(int row) {
 		for (int numRow = row; numRow < getyMax(); numRow++) {
 			for (int col = 0; col < getxMax(); col++) {
 				if (getGameField()[numRow][col] == true) {
@@ -1188,6 +1219,25 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		setStonePreview(stonePrev);
 	}
 	
+	/**
+	 * this method returns if the player has lost
+	 * the game
+	 * @return
+	 */
+	protected boolean gameOver() {
+		boolean gameIsLost = false;
+		for(int i = 0; i < getStonesFallen().size();i++) {
+			ArrayList<Rectangle> stoneParts = getStonesFallen().get(i).getStoneParts();
+			for(int k = 0; k < stoneParts.size();k++) {
+				if(stoneParts.get(k).getY() < (getKwidthAndHeight() *3 +8) ) {
+					gameIsLost = true;
+					break;
+				}
+			}
+		}
+		return gameIsLost;
+	}
+	
 	
 	/**
 	 * @return the randNumber 
@@ -1213,33 +1263,37 @@ public class TetrisGameField extends JPanel implements KeyListener {
 
 		if (key == KeyEvent.VK_LEFT) {
 			if (movePossible(1) && !touchesAnotherStone(1)) {
-				moveStoneOneField(1, getStone().getStoneParts());
+				if(!gamePaused) {
+					moveStoneOneField(1, getStone().getStoneParts());
+				}
 			}
 		} else if (key == KeyEvent.VK_RIGHT) {
 			if (movePossible(2) && !touchesAnotherStone(2)) {
-				moveStoneOneField(2, getStone().getStoneParts());
+				if(!gamePaused) {
+					moveStoneOneField(2, getStone().getStoneParts());
+				}
 			}
 		} else if (key == KeyEvent.VK_UP) {
 			if (!touchesAnotherStone(3) && !touchesGroundAfterMoving()) {
-				rotateStone();
+				if(!gamePaused) {
+					rotateStone();
+				}
 			}
-			ArrayList<Rectangle> stoneParts = getStone().getStoneParts();
-
-					log.info("X1:" + String.valueOf(stoneParts.get(0).getX()));
-					log.info("X2:" + String.valueOf(stoneParts.get(1).getX()));
-					log.info("X3:" + String.valueOf(stoneParts.get(2).getX()));
-					log.info("X4:" + String.valueOf(stoneParts.get(3).getX()));
 
 		} else if (key == KeyEvent.VK_DOWN) {
-			setLayDownKeyPressed(true);
-			setTimerLayDown(true);
+			if(!gamePaused) {
+				setLayDownKeyPressed(true);
+				setTimerLayDown(true);
+			}
 		} else if (key == KeyEvent.VK_P) {
 			if (!isGamePaused()) {
 				setGamePaused(true);
 				getTimer().stop();
+				pause.setVisible(true);
 			} else {
 				setGamePaused(false);
 				getTimer().restart();
+				pause.setVisible(false);
 			}
 		}
 
