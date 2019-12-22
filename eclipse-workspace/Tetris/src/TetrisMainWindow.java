@@ -23,7 +23,7 @@ public class TetrisMainWindow extends JFrame {
 	 */
 	public TetrisMainWindow() {
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		setTitle("Tetris");
+		setTitle("Tetris Christmas Edition");
 		setVisible(true);
 		setSize(400, 425);
 		setLocationRelativeTo(null);

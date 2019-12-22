@@ -277,7 +277,7 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		paintStonesFallen(g2d);
 		// paint stone preview
 		paintStonePreview(g2d);
-		// 
+		// paint the game info on the right side
 		paintRightGameInfo(g2d);
 	}
 
@@ -1314,11 +1314,36 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		return gameIsLost;
 	}
 	
-	
+	/** 
+	 * this method inits a new game for example 
+	 * if the game is lost and the player clicks new game
+	 */
 	private void initNewGame() {
 		getStonesFallen().clear();
 		setLevel(0);
 		setScore(0);
+		setGameIsOver(false);
+		gameOverLabel.setVisible(false);
+		getStone().getStoneParts().clear();
+		setRandNumberNextStone(getRandomNumberForStone(7));
+		setRandNumberNextInnerRectangle(getRandomNumberForStone(5));
+		getStone().createStone(getRandNumberNextStone(), getRandNumberNextInnerRectangle());
+		setRandNumberNextStone(getRandomNumberForStone(7));
+		setRandNumberNextInnerRectangle(getRandomNumberForStone(5));
+		createStonePreview();
+		resetGameFieldToBegin();
+		setSpeed(800);
+	}
+	
+	/** 
+	 * this method resets the gameField to it´s usual begin
+	 */
+	private void resetGameFieldToBegin() {
+		for(int numRow = 0; numRow < getyMax(); numRow ++) {
+			for(int numCol = 0; numCol < getxMax(); numCol++) {
+				gameField[numRow][numCol]= false;
+			}
+		}
 	}
 	
 	
@@ -1393,7 +1418,7 @@ public class TetrisGameField extends JPanel implements KeyListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			if(e.getSource().equals(newGameItem)) {
-				
+				initNewGame();
 			}else if(e.getSource().equals(backToMainMenue)) {
 				setGoBackToMainMenue(true);
 			}
