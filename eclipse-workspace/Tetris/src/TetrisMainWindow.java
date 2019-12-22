@@ -16,6 +16,8 @@ public class TetrisMainWindow extends JFrame {
 		mainMenuePanel = new TetrisMainPanel();
 		mainClass = new TetrisMainWindow();
 		mainClass.getContentPane().add(mainMenuePanel);
+		TetrisMainSound sound = new TetrisMainSound();
+		sound.playSound();
 	}
 
 	/**

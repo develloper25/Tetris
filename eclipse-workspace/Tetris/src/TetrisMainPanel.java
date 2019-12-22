@@ -69,6 +69,13 @@ public class TetrisMainPanel extends JPanel {
 			e.printStackTrace();
 		}
 		g.drawImage(img, 0, 0, getWidth(), getHeight(), null);
+		// draw special christmas image
+		try {
+			img = ImageIO.read(new File("./santa.png"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		g.drawImage(img, 100, 0, getWidth() -50, getHeight()-50, null);
 	}
 
 	/**
