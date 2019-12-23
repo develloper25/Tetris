@@ -9,7 +9,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.logging.Logger;
-
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -1757,71 +1756,114 @@ public class TetrisGameField extends JPanel implements KeyListener {
 	}
 
 
+	/**
+	 * 
+	 * @return
+	 */
 	public int getFrames() {
 		return frames;
 	}
 
-
+	/**
+	 * 
+	 * @param frames
+	 */
 	public void setFrames(int frames) {
 		this.frames = frames;
 	}
 
-
+	/**
+	 * 
+	 * @return
+	 */
 	public int getRandNumberNextStone() {
 		return randNumberNextStone;
 	}
 
-
+	/**
+	 * 
+	 * @param randNumberNextStone
+	 */
 	public void setRandNumberNextStone(int randNumberNextStone) {
 		this.randNumberNextStone = randNumberNextStone;
 	}
 
-
+	/**
+	 * 
+	 * @return
+	 */
 	public int getRandNumberNextInnerRectangle() {
 		return randNumberNextInnerRectangle;
 	}
 
-
+	/**
+	 * 
+	 * @param randNumberNextInnerRectangle
+	 */
 	public void setRandNumberNextInnerRectangle(int randNumberNextInnerRectangle) {
 		this.randNumberNextInnerRectangle = randNumberNextInnerRectangle;
 	}
 
-
+	/**
+	 * 
+	 * @return
+	 */
 	public int getDefStonePreviewStartX() {
 		return defStonePreviewStartX;
 	}
 
-
+	/**
+	 * 
+	 * @param defStonePreviewStartX
+	 */
 	public void setDefStonePreviewStartX(int defStonePreviewStartX) {
 		this.defStonePreviewStartX = defStonePreviewStartX;
 	}
 
-
+	/**
+	 * 
+	 * @return
+	 */
 	public int getDefStonePreviewStartY() {
 		return defStonePreviewStartY;
 	}
 
-
+	/**
+	 * 
+	 * @param defStonePreviewStartY
+	 */
 	public void setDefStonePreviewStartY(int defStonePreviewStartY) {
 		this.defStonePreviewStartY = defStonePreviewStartY;
 	}
 
-
+	/**
+	 * 
+	 * @return
+	 */
 	public boolean isGameIsOver() {
 		return gameIsOver;
 	}
 
-
+	/**
+	 * 
+	 * @param gameIsOver
+	 */
 	public void setGameIsOver(boolean gameIsOver) {
 		this.gameIsOver = gameIsOver;
 	}
 
-
+	/**
+	 * 
+	 * @return
+	 */
 	public boolean isGoBackToMainMenue() {
 		return goBackToMainMenue;
 	}
 
-
+	/**
+	 * 
+	 * @param goBackToMainMenue
+	 */
 	public void setGoBackToMainMenue(boolean goBackToMainMenue) {
 		this.goBackToMainMenue = goBackToMainMenue;
 	}

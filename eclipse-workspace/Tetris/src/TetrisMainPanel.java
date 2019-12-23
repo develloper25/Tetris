@@ -1,13 +1,15 @@
 import java.awt.Graphics;
-import java.awt.Image;
-import java.io.File;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
 public class TetrisMainPanel extends JPanel {
 
+	/** A logger for better debugging */
+	private static final Logger log = Logger.getLogger(TetrisMainPanel.class.getName());
 	/** Button for single player Mode */
 	private JButton singlePlayerButton;
 
@@ -62,17 +64,19 @@ public class TetrisMainPanel extends JPanel {
 	 * @param Graphics g
 	 */
 	private void drawBackroundImage(Graphics g) {
-		Image img = null;
+		BufferedImage img = null;
 		try {
-			img = ImageIO.read(new File("./images.jpg"));
+			img = ImageIO.read(this.getClass().getResourceAsStream("images.jpg"));
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.info("can´t find or open images.jpg");
+			e.printStackTrace() ;
 		}
 		g.drawImage(img, 0, 0, getWidth(), getHeight(), null);
 		// draw special christmas image
 		try {
-			img = ImageIO.read(new File("./santa.png"));
+			img = ImageIO.read(this.getClass().getResourceAsStream("santa.png"));
 		} catch (IOException e) {
+			log.info("can´t find or open santa.png");
 			e.printStackTrace();
 		}
 		g.drawImage(img, 100, 0, getWidth() -50, getHeight()-50, null);

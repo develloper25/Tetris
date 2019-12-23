@@ -50,8 +50,6 @@ public class TetrisMainWindow extends JFrame {
 		}
 	}
 	
-	
-	
 
 	/**
 	 * inits the single player Game
